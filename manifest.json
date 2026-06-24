@@ -1,0 +1,16 @@
+{
+  "name": "Bao's Bilingual Math",
+  "short_name": "Bao Math",
+  "start_url": "/index.html",
+  "display": "standalone", 
+  "background_color": "#e0f7fa",
+  "theme_color": "#ff6b6b",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "icon.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

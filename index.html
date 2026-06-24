@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    
+    <!-- 📱 PWA / "FAKE APP" MAGIC FOR IPAD 📱 -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Bao's Math">
+    <link rel="apple-touch-icon" href="icon.png"> <!-- We will make this icon later! -->
+    <link rel="manifest" href="manifest.json">
+    <!-- ----------------------------------------- -->
+
+    <title>Bilingual Math - Count to 3</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@600;800&display=swap');
+
+        body {
+            margin: 0; padding: 0;
+            font-family: 'Nunito', sans-serif;
+            background: linear-gradient(to bottom right, #e0f7fa, #fce4ec);
+            height: 100vh; width: 100vw;
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            overflow: hidden; user-select: none;
+            -webkit-tap-highlight-color: transparent; /* Removes the grey tap flash on iPad */
+        }
+
+        .top-bar {
+            position: absolute; top: 40px; /* Pushed down slightly for iPad safe areas */
+            width: 90%; display: flex; justify-content: space-between; align-items: center;
+        }
+        .lang-toggle {
+            background: white; border: none; padding: 12px 24px; border-radius: 50px;
+            font-size: 1.2rem; font-weight: 800; color: #ff6b6b;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1); cursor: pointer; transition: transform 0.2s;
+        }
+        .lang-toggle:active { transform: scale(0.95); }
+        .mascot { font-size: 3rem; animation: bounce 2s infinite; }
+
+        .instruction {
+            font-size: 2.5rem; font-weight: 800; color: #4a4a4a;
+            margin-bottom: 40px; text-align: center;
+            text-shadow: 2px 2px 0px rgba(255,255,255,0.8);
+        }
+        .apple-grid { display: flex; gap: 40px; }
+        .apple {
+            font-size: 6rem; cursor: pointer;
+            transition: transform 0.2s, filter 0.2s;
+            filter: drop-shadow(0px 10px 10px rgba(0,0,0,0.2));
+        }
+        .apple:hover { transform: scale(1.1) rotate(5deg); }
+        .apple:active { transform: scale(0.9); }
+        .apple.tapped { animation: pop 0.5s forwards; }
+
+        .overlay {
+            position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(255, 255, 255, 0.95); display: none;
+            flex-direction: column; align-items: center; justify-content: center; z-index: 10;
+        }
+        .overlay.show { display: flex; }
+        .celebrate-text { font-size: 3.5rem; font-weight: 800; color: #ff6b6b; margin-bottom: 30px; animation: popIn 0.5s; }
+        .next-btn {
+            background: #4ecdc4; color: white; border: none; padding: 20px 50px;
+            border-radius: 50px; font-size: 1.8rem; font-weight: 800;
+            box-shadow: 0 6px 0 #3ba89f; cursor: pointer;
+        }
+        .next-btn:active { transform: translateY(4px); box-shadow: 0 2px 0 #3ba89f; }
+
+        @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-15px); } }
+        @keyframes pop { 0% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.5); opacity: 0.5; } 100% { transform: scale(0); opacity: 0; } }
+        @keyframes popIn { 0% { transform: scale(0); } 80% { transform: scale(1.2); } 100% { transform: scale(1); } }
+    </style>
+</head>
+<body>
+
+    <div class="top-bar">
+        <div class="mascot">🐼</div>
+        <button class="lang-toggle" onclick="toggleLanguage()">中文 / EN</button>
+    </div>
+
+    <div class="instruction" id="instruction">Tap 3 Apples!</div>
+    <div class="apple-grid" id="appleGrid">
+        <div class="apple" onclick="tapApple(this)">🍎</div>
+        <div class="apple" onclick="tapApple(this)">🍎</div>
+        <div class="apple" onclick="tapApple(this)">🍎</div>
+    </div>
+
+    <div class="overlay" id="overlay">
+        <div class="celebrate-text" id="celebrateText">Great Job!</div>
+        <button class="next-btn" onclick="resetGame()">Play Again</button>
+    </div>
+
+    <script>
+        let currentLang = 'en';
+        let targetCount = 3;
+        let currentCount = 0;
+
+        const translations = {
+            en: { instruction: "Tap 3 Apples!", celebrate: "Great Job! 🌟", nextBtn: "Play Again", numbers: ["", "One!", "Two!", "Three!"] },
+            zh: { instruction: "点击 3 个苹果！", celebrate: "太棒了！🌟", nextBtn: "再玩一次", numbers: ["", "一！", "二！", "三！"] }
+        };
+
+        function speak(text, langCode) {
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel();
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = langCode; utterance.rate = 0.9; utterance.pitch = 1.2;
+                window.speechSynthesis.speak(utterance);
+            }
+        }
+
+        function toggleLanguage() {
+            currentLang = currentLang === 'en' ? 'zh' : 'en';
+            updateUI();
+            speak(translations[currentLang].instruction, currentLang === 'en' ? 'en-US' : 'zh-CN');
+        }
+
+        function updateUI() {
+            const t = translations[currentLang];
+            document.getElementById('instruction').innerText = t.instruction;
+            document.getElementById('celebrateText').innerText = t.celebrate;
+            document.querySelector('.next-btn').innerText = t.nextBtn;
+        }
+
+        function tapApple(element) {
+            if (element.classList.contains('tapped')) return;
+            element.classList.add('tapped');
+            currentCount++;
+            const langCode = currentLang === 'en' ? 'en-US' : 'zh-CN';
+            speak(translations[currentLang].numbers[currentCount], langCode);
+
+            if (currentCount === targetCount) {
+                setTimeout(() => {
+                    document.getElementById('overlay').classList.add('show');
+                    speak(translations[currentLang].celebrate, langCode);
+                }, 600);
+            }
+        }
+
+        function resetGame() {
+            currentCount = 0;
+            document.getElementById('overlay').classList.remove('show');
+            document.querySelectorAll('.apple').forEach(a => a.classList.remove('tapped'));
+            speak(translations[currentLang].instruction, currentLang === 'en' ? 'en-US' : 'zh-CN');
+        }
+
+        window.onload = () => {
+            updateUI();
+            setTimeout(() => { speak(translations[currentLang].instruction, 'en-US'); }, 500);
+        };
+    </script>
+</body>
+</html>
