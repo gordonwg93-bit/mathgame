@@ -2,30 +2,62 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    
+    <!-- 📱 PWA / "FAKE APP" MAGIC FOR IPAD 📱 -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Bao's Math">
     <link rel="apple-touch-icon" href="icon.png">
     <link rel="manifest" href="manifest.json">
+    <!-- ----------------------------------------- -->
+
     <title>Bao's Bilingual Math</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@600;800&display=swap');
-        body { margin: 0; padding: 0; font-family: 'Nunito', sans-serif; background: linear-gradient(to bottom right, #e0f7fa, #fce4ec); height: 100vh; width: 100vw; overflow: hidden; user-select: none; -webkit-tap-highlight-color: transparent; }
+        
+        /* --- GLOBAL STYLES --- */
+        body { 
+            margin: 0; padding: 0; font-family: 'Nunito', sans-serif; 
+            background: linear-gradient(to bottom right, #e0f7fa, #fce4ec); 
+            height: 100vh; width: 100vw; overflow: hidden; 
+            user-select: none; -webkit-tap-highlight-color: transparent; 
+        }
         
         /* --- TOP BAR --- */
-        .top-bar { position: absolute; top: 40px; width: 90%; display: flex; justify-content: space-between; align-items: center; z-index: 100; }
-        .lang-toggle { background: white; border: none; padding: 12px 24px; border-radius: 50px; font-size: 1.2rem; font-weight: 800; color: #ff6b6b; box-shadow: 0 4px 6px rgba(0,0,0,0.1); cursor: pointer; }
+        .top-bar { 
+            position: absolute; top: 40px; width: 90%; 
+            display: flex; justify-content: space-between; align-items: center; z-index: 100; 
+        }
+        .lang-toggle { 
+            background: white; border: none; padding: 12px 24px; border-radius: 50px; 
+            font-size: 1.2rem; font-weight: 800; color: #ff6b6b; 
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1); cursor: pointer; transition: transform 0.2s;
+        }
         .lang-toggle:active { transform: scale(0.95); }
-        .mascot-img { width: 80px; height: auto; animation: bounce 2s infinite; filter: drop-shadow(0px 8px 8px rgba(0,0,0,0.15)); }
+        .mascot-img { 
+            width: 80px; height: auto; animation: bounce 2s infinite; 
+            filter: drop-shadow(0px 8px 8px rgba(0,0,0,0.15)); 
+        }
 
-        /* --- MAP SCREEN --- */
-        .screen { display: none; flex-direction: column; align-items: center; justify-content: center; height: 100vh; width: 100vw; }
+        /* --- SCREEN MANAGEMENT --- */
+        .screen { 
+            display: none; flex-direction: column; align-items: center; justify-content: center; 
+            height: 100vh; width: 100vw; 
+        }
         .screen.active { display: flex; }
         
-        .map-title { font-size: 2.5rem; font-weight: 800; color: #4a4a4a; margin-bottom: 40px; text-shadow: 2px 2px 0px rgba(255,255,255,0.8); }
+        /* --- MAP SCREEN (THE HUB) --- */
+        .map-title { 
+            font-size: 2.5rem; font-weight: 800; color: #4a4a4a; 
+            margin-bottom: 40px; text-align: center;
+            text-shadow: 2px 2px 0px rgba(255,255,255,0.8); 
+        }
         
-        .module-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 30px; width: 90%; max-width: 800px; }
+        .module-grid { 
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); 
+            gap: 30px; width: 90%; max-width: 800px; 
+        }
         
         .module-card {
             background: white; border-radius: 30px; padding: 30px 20px; text-align: center;
@@ -37,18 +69,25 @@
         .module-icon { font-size: 4rem; }
         .module-title { font-size: 1.2rem; font-weight: 800; color: #4a4a4a; }
 
-        /* --- GAME SCREEN --- */
-        #game-screen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(to bottom right, #e0f7fa, #fce4ec); z-index: 50; }
+        /* --- GAME SCREEN (THE SPOKES) --- */
+        #game-screen { 
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
+            background: linear-gradient(to bottom right, #e0f7fa, #fce4ec); z-index: 50; 
+        }
         
         .back-btn {
-            position: absolute; top: 40px; left: 20px; background: white; border: none; width: 50px; height: 50px;
-            border-radius: 50%; font-size: 1.5rem; box-shadow: 0 4px 6px rgba(0,0,0,0.1); cursor: pointer; z-index: 101;
+            position: absolute; top: 40px; left: 20px; background: white; border: none; 
+            width: 50px; height: 50px; border-radius: 50%; font-size: 1.5rem; 
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1); cursor: pointer; z-index: 101;
             display: flex; align-items: center; justify-content: center;
         }
         .back-btn:active { transform: scale(0.9); }
 
-        #game-container { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; }
+        #game-container { 
+            width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; 
+        }
 
+        /* --- ANIMATIONS --- */
         @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-15px); } }
     </style>
 </head>
@@ -85,8 +124,9 @@
         // ADD NEW MODULES HERE! (No file limit!)
         const MODULE_REGISTRY = [
             { id: 'module-a', file: 'module-a.html', icon: '🍎', titleEn: 'Apple Orchard', titleZh: '苹果园', unlocked: true },
-            { id: 'module-h', file: 'module-h.html', icon: '🧺', titleEn: 'Picnic River', titleZh: '野餐河', unlocked: false }, // Coming soon!
-            { id: 'module-hh', file: 'module-hh.html', icon: '🏰', titleEn: 'Shape Castle', titleZh: '形状城堡', unlocked: false } // Coming soon!
+            { id: 'module-h', file: 'module-h.html', icon: '🧺', titleEn: 'Picnic River', titleZh: '野餐河', unlocked: true },
+            { id: 'module-hh', file: 'module-hh.html', icon: '🏰', titleEn: 'Shape Castle', titleZh: '形状城堡', unlocked: true },
+            { id: 'module-ee', file: 'module-ee.html', icon: '🐛', titleEn: 'Pattern Forest', titleZh: '图案森林', unlocked: false } // Coming soon!
         ];
 
         // ==========================================
@@ -199,7 +239,7 @@
             document.getElementById('map-screen').classList.add('active');
         }
 
-        // --- INIT ---
+        // --- INITIALIZATION ---
         window.onload = () => {
             updateMapUI();
             setTimeout(() => speak(uiText[window.appState.currentLang].mapTitle, 'en-US'), 500);
