@@ -8,11 +8,11 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Bao's Math">
-    <link rel="apple-touch-icon" href="icon.png"> <!-- We will make this icon later! -->
+    <link rel="apple-touch-icon" href="icon.png"> 
     <link rel="manifest" href="manifest.json">
     <!-- ----------------------------------------- -->
 
-    <title>Bilingual Math - Count to 3</title>
+    <title>Bao's Bilingual Math</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@600;800&display=swap');
 
@@ -24,11 +24,12 @@
             display: flex; flex-direction: column;
             align-items: center; justify-content: center;
             overflow: hidden; user-select: none;
-            -webkit-tap-highlight-color: transparent; /* Removes the grey tap flash on iPad */
+            -webkit-tap-highlight-color: transparent; 
         }
 
+        /* --- TOP BAR --- */
         .top-bar {
-            position: absolute; top: 40px; /* Pushed down slightly for iPad safe areas */
+            position: absolute; top: 40px; 
             width: 90%; display: flex; justify-content: space-between; align-items: center;
         }
         .lang-toggle {
@@ -37,23 +38,36 @@
             box-shadow: 0 4px 6px rgba(0,0,0,0.1); cursor: pointer; transition: transform 0.2s;
         }
         .lang-toggle:active { transform: scale(0.95); }
-        .mascot { font-size: 3rem; animation: bounce 2s infinite; }
+        
+        /* --- MASCOT STYLING --- */
+        .mascot-img {
+            width: 80px; /* Adjust this number to make the panda bigger/smaller */
+            height: auto;
+            animation: bounce 2s infinite;
+            filter: drop-shadow(0px 8px 8px rgba(0,0,0,0.15));
+        }
 
+        /* --- GAME AREA --- */
         .instruction {
             font-size: 2.5rem; font-weight: 800; color: #4a4a4a;
             margin-bottom: 40px; text-align: center;
             text-shadow: 2px 2px 0px rgba(255,255,255,0.8);
         }
         .apple-grid { display: flex; gap: 40px; }
-        .apple {
-            font-size: 6rem; cursor: pointer;
-            transition: transform 0.2s, filter 0.2s;
+        
+        /* --- APPLE IMAGE STYLING --- */
+        .apple-img {
+            width: 120px; /* Adjust this number to make the apples bigger/smaller */
+            height: auto;
+            cursor: pointer;
+            transition: transform 0.2s;
             filter: drop-shadow(0px 10px 10px rgba(0,0,0,0.2));
         }
-        .apple:hover { transform: scale(1.1) rotate(5deg); }
-        .apple:active { transform: scale(0.9); }
-        .apple.tapped { animation: pop 0.5s forwards; }
+        .apple-img:hover { transform: scale(1.1) rotate(5deg); }
+        .apple-img:active { transform: scale(0.9); }
+        .apple-img.tapped { animation: pop 0.5s forwards; }
 
+        /* --- CELEBRATION OVERLAY --- */
         .overlay {
             position: absolute; top: 0; left: 0; right: 0; bottom: 0;
             background: rgba(255, 255, 255, 0.95); display: none;
@@ -68,6 +82,7 @@
         }
         .next-btn:active { transform: translateY(4px); box-shadow: 0 2px 0 #3ba89f; }
 
+        /* --- ANIMATIONS --- */
         @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-15px); } }
         @keyframes pop { 0% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.5); opacity: 0.5; } 100% { transform: scale(0); opacity: 0; } }
         @keyframes popIn { 0% { transform: scale(0); } 80% { transform: scale(1.2); } 100% { transform: scale(1); } }
@@ -76,15 +91,17 @@
 <body>
 
     <div class="top-bar">
-        <div class="mascot">🐼</div>
+        <!-- Replaced Emoji with Image -->
+        <img src="panda.png" class="mascot-img" alt="Mascot">
         <button class="lang-toggle" onclick="toggleLanguage()">中文 / EN</button>
     </div>
 
     <div class="instruction" id="instruction">Tap 3 Apples!</div>
     <div class="apple-grid" id="appleGrid">
-        <div class="apple" onclick="tapApple(this)">🍎</div>
-        <div class="apple" onclick="tapApple(this)">🍎</div>
-        <div class="apple" onclick="tapApple(this)">🍎</div>
+        <!-- Replaced Emojis with Images -->
+        <img src="apple.png" class="apple-img" onclick="tapApple(this)">
+        <img src="apple.png" class="apple-img" onclick="tapApple(this)">
+        <img src="apple.png" class="apple-img" onclick="tapApple(this)">
     </div>
 
     <div class="overlay" id="overlay">
@@ -142,7 +159,7 @@
         function resetGame() {
             currentCount = 0;
             document.getElementById('overlay').classList.remove('show');
-            document.querySelectorAll('.apple').forEach(a => a.classList.remove('tapped'));
+            document.querySelectorAll('.apple-img').forEach(a => a.classList.remove('tapped'));
             speak(translations[currentLang].instruction, currentLang === 'en' ? 'en-US' : 'zh-CN');
         }
 
