@@ -1,111 +1,62 @@
 <style>
-    .modBB-wrap { display: flex; flex-direction: column; align-items: center; width: 100%; padding: 20px; box-sizing: border-box; }
-    .modBB-inst { font-size: 2.2rem; font-weight: 800; color: #4a4a4a; margin-bottom: 30px; text-align: center; }
-    
     .modBB-visual { display: flex; gap: 30px; margin-bottom: 40px; align-items: center; flex-wrap: wrap; justify-content: center; }
     .modBB-ten-frame { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; background: rgba(255,255,255,0.5); padding: 10px; border-radius: 15px; }
     .modBB-loose { display: flex; gap: 5px; }
     .modBB-star { width: 45px; height: 45px; filter: drop-shadow(0px 4px 4px rgba(0,0,0,0.1)); }
-
     .modBB-choices { display: flex; gap: 20px; flex-wrap: wrap; justify-content: center; }
-    .modBB-btn {
-        width: 80px; height: 80px; border-radius: 20px; background: white; border: none;
-        font-size: 2.5rem; font-weight: 800; color: #4a4a4a; box-shadow: 0 6px 0 #d1d1d1;
-        cursor: pointer; transition: transform 0.1s;
-    }
+    .modBB-btn { width: 80px; height: 80px; border-radius: 20px; background: white; border: none; font-size: 2.5rem; font-weight: 800; color: #4a4a4a; box-shadow: 0 6px 0 #d1d1d1; cursor: pointer; transition: transform 0.1s; }
     .modBB-btn:active { transform: translateY(4px); box-shadow: 0 2px 0 #d1d1d1; }
     .modBB-btn.correct { background: #4ecdc4; color: white; box-shadow: 0 6px 0 #3ba89f; }
     .modBB-btn.wrong { background: #ff6b6b; color: white; box-shadow: 0 6px 0 #d9534f; animation: modBB-shake 0.5s; }
-
     @keyframes modBB-shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-10px); } 75% { transform: translateX(10px); } }
 </style>
 
-<div class="game-content">
-    <div class="modBB-wrap">
-        <div class="modBB-inst" id="modBB-inst">What number is this?</div>
-        <div class="modBB-visual" id="modBB-visual"></div>
-        <div class="modBB-choices" id="modBB-choices"></div>
-    </div>
+<div class="module-content">
+    <div class="modBB-visual" id="modBB-visual"></div>
+    <div class="modBB-choices" id="modBB-choices"></div>
 </div>
 
 <script>
     let modBB_targetNum;
 
-    const modBB_text = {
-        en: { inst: "What number is this?", correct: "Yes!", wrong: "Try again!" },
-        zh: { inst: "这是数字几？", correct: "答对了！", wrong: "再试一次！" }
-    };
+    function initModule() { modBB_generate(); }
+    function destroyModule() { window.speechSynthesis.cancel(); }
 
-    function initCurrentModule() { modBB_generateRound(); }
-    function destroyCurrentModule() { window.speechSynthesis.cancel(); }
-
-    function modBB_generateRound() {
-        modBB_targetNum = Math.floor(Math.random() * 9) + 11; // 11 to 19
+    function modBB_generate() {
+        modBB_targetNum = Math.floor(Math.random() * 9) + 11;
         const looseCount = modBB_targetNum - 10;
+        window.setInstruction("What number is this?", "这是数字几？");
 
-        const lang = window.appState.currentLang;
-        document.getElementById('modBB-inst').innerText = modBB_text[lang].inst;
-
-        // Build Visuals
         const visualDiv = document.getElementById('modBB-visual');
         visualDiv.innerHTML = '';
-
-        // 10-frame (10 stars)
-        const tenFrame = document.createElement('div');
-        tenFrame.className = 'modBB-ten-frame';
-        for(let i=0; i<10; i++) {
-            const star = document.createElement('img');
-            star.src = 'star.png';
-            star.className = 'modBB-star';
-            tenFrame.appendChild(star);
-        }
+        const tenFrame = document.createElement('div'); tenFrame.className = 'modBB-ten-frame';
+        for(let i=0; i<10; i++) { const star = document.createElement('img'); star.src = 'star.png'; star.className = 'modBB-star'; tenFrame.appendChild(star); }
         visualDiv.appendChild(tenFrame);
-
-        // Loose stars
         if(looseCount > 0) {
-            const looseDiv = document.createElement('div');
-            looseDiv.className = 'modBB-loose';
-            for(let i=0; i<looseCount; i++) {
-                const star = document.createElement('img');
-                star.src = 'star.png';
-                star.className = 'modBB-star';
-                looseDiv.appendChild(star);
-            }
+            const looseDiv = document.createElement('div'); looseDiv.className = 'modBB-loose';
+            for(let i=0; i<looseCount; i++) { const star = document.createElement('img'); star.src = 'star.png'; star.className = 'modBB-star'; looseDiv.appendChild(star); }
             visualDiv.appendChild(looseDiv);
         }
 
-        // Build choices
         const choicesDiv = document.getElementById('modBB-choices');
         choicesDiv.innerHTML = '';
-        
-        // Generate 3 options (1 correct, 2 distractors)
         let options = new Set([modBB_targetNum]);
-        while(options.size < 3) {
-            let rand = Math.floor(Math.random() * 9) + 11;
-            options.add(rand);
-        }
-        let optionsArray = Array.from(options).sort(() => Math.random() - 0.5);
-
-        optionsArray.forEach(num => {
+        while(options.size < 3) options.add(Math.floor(Math.random() * 9) + 11);
+        Array.from(options).sort(() => Math.random() - 0.5).forEach(num => {
             const btn = document.createElement('button');
-            btn.className = 'modBB-btn';
-            btn.innerText = num;
-            btn.onclick = () => modBB_checkAnswer(num, btn);
+            btn.className = 'modBB-btn'; btn.innerText = num;
+            btn.onclick = () => modBB_check(num, btn);
             choicesDiv.appendChild(btn);
         });
     }
 
-    function modBB_checkAnswer(num, btn) {
-        const lang = window.appState.currentLang;
-        const code = lang === 'en' ? 'en-US' : 'zh-CN';
-
+    function modBB_check(num, btn) {
         if(num === modBB_targetNum) {
             btn.classList.add('correct');
-            speak(modBB_text[lang].correct, code);
-            setTimeout(modBB_generateRound, 1500);
+            window.showCelebration("Yes!", "答对了！", "Next Number", "下一个数字", initModule);
         } else {
             btn.classList.add('wrong');
-            speak(modBB_text[lang].wrong, code);
+            window.speak(window.appState.currentLang === 'en' ? "Try again!" : "再试一次！", getLangCode());
             setTimeout(() => btn.classList.remove('wrong'), 500);
         }
     }

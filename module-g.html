@@ -1,111 +1,57 @@
 <style>
-    .modG-wrap { display: flex; flex-direction: column; align-items: center; width: 100%; padding: 20px; box-sizing: border-box; }
-    .modG-inst { font-size: 2.2rem; font-weight: 800; color: #4a4a4a; margin-bottom: 30px; text-align: center; }
-    
     .modG-arena { display: flex; gap: 30px; align-items: center; justify-content: center; flex-wrap: wrap; margin-bottom: 20px; }
-    
-    .modG-group {
-        display: flex; flex-wrap: wrap; gap: 8px; padding: 25px; border-radius: 30px;
-        background: white; box-shadow: 0 8px 16px rgba(0,0,0,0.1); cursor: pointer;
-        transition: transform 0.2s, box-shadow 0.2s; min-width: 140px; min-height: 140px;
-        justify-content: center; align-items: center; max-width: 220px;
-    }
+    .modG-group { display: flex; flex-wrap: wrap; gap: 8px; padding: 25px; border-radius: 30px; background: white; box-shadow: 0 8px 16px rgba(0,0,0,0.1); cursor: pointer; transition: transform 0.2s; min-width: 140px; min-height: 140px; justify-content: center; align-items: center; max-width: 220px; }
     .modG-group:active { transform: scale(0.95); }
     .modG-group.correct { background: #4ecdc4; box-shadow: 0 8px 16px rgba(78,205,196,0.4); animation: modG-pop 0.5s; }
     .modG-group.wrong { background: #ff6b6b; animation: modG-shake 0.5s; }
-    
     .modG-item { width: 50px; height: 50px; filter: drop-shadow(0px 3px 3px rgba(0,0,0,0.15)); }
-    
     .modG-vs { font-size: 2.5rem; font-weight: 800; color: #ff6b6b; }
-
-    .modG-equal-note { font-size: 1.5rem; font-weight: 800; color: #4a4a4a; margin-top: 10px; display: none; }
-
     @keyframes modG-pop { 0% { transform: scale(1); } 50% { transform: scale(1.08); } 100% { transform: scale(1); } }
     @keyframes modG-shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-10px); } 75% { transform: translateX(10px); } }
 </style>
 
-<div class="game-content">
-    <div class="modG-wrap">
-        <div class="modG-inst" id="modG-inst">Which has more?</div>
-        <div class="modG-arena" id="modG-arena"></div>
-        <div class="modG-equal-note" id="modG-equal"></div>
-    </div>
+<div class="module-content">
+    <div class="modG-arena" id="modG-arena"></div>
 </div>
 
 <script>
-    const modG_items = [
-        { img: 'apple.png' }, { img: 'star.png' }, { img: 'orange.png' }, { img: 'watermelon.png' }, { img: 'banana.png' }
-    ];
-    let modG_answerSide; // 'left' or 'right'
+    const modG_items = ['apple.png', 'star.png', 'orange.png', 'watermelon.png', 'banana.png'];
+    let modG_answerSide;
 
-    const modG_text = {
-        en: { inst: "Which has more?", correct: "Yes!", wrong: "Try again!", equal: "They are equal!" },
-        zh: { inst: "哪边更多？", correct: "答对了！", wrong: "再试一次！", equal: "一样多！" }
-    };
+    function initModule() { modG_generate(); }
+    function destroyModule() { window.speechSynthesis.cancel(); }
 
-    function initCurrentModule() { modG_generateRound(); }
-    function destroyCurrentModule() { window.speechSynthesis.cancel(); }
-
-    function modG_generateRound() {
-        const lang = window.appState.currentLang;
-        document.getElementById('modG-inst').innerText = modG_text[lang].inst;
-        document.getElementById('modG-equal').style.display = 'none';
-
-        // Pick random counts (1-8 each, ensure they're different)
+    function modG_generate() {
+        window.setInstruction("Which has more?", "哪边更多？");
         let countA = Math.floor(Math.random() * 8) + 1;
         let countB = Math.floor(Math.random() * 8) + 1;
-        while(countB === countA) { countB = Math.floor(Math.random() * 8) + 1; }
-
+        while(countB === countA) countB = Math.floor(Math.random() * 8) + 1;
         modG_answerSide = countA > countB ? 'left' : 'right';
-
-        // Pick random item
-        const item = modG_items[Math.floor(Math.random() * modG_items.length)];
+        const itemImg = modG_items[Math.floor(Math.random() * modG_items.length)];
 
         const arena = document.getElementById('modG-arena');
         arena.innerHTML = '';
 
-        // Group A
-        const groupA = document.createElement('div');
-        groupA.className = 'modG-group';
-        for(let i=0; i<countA; i++) {
-            const img = document.createElement('img');
-            img.src = item.img;
-            img.className = 'modG-item';
-            groupA.appendChild(img);
-        }
+        const groupA = document.createElement('div'); groupA.className = 'modG-group';
+        for(let i=0; i<countA; i++) { const img = document.createElement('img'); img.src = itemImg; img.className = 'modG-item'; groupA.appendChild(img); }
         groupA.onclick = () => modG_check('left', groupA);
         arena.appendChild(groupA);
 
-        // VS
-        const vs = document.createElement('div');
-        vs.className = 'modG-vs';
-        vs.innerText = 'VS';
-        arena.appendChild(vs);
+        const vs = document.createElement('div'); vs.className = 'modG-vs'; vs.innerText = 'VS'; arena.appendChild(vs);
 
-        // Group B
-        const groupB = document.createElement('div');
-        groupB.className = 'modG-group';
-        for(let i=0; i<countB; i++) {
-            const img = document.createElement('img');
-            img.src = item.img;
-            img.className = 'modG-item';
-            groupB.appendChild(img);
-        }
+        const groupB = document.createElement('div'); groupB.className = 'modG-group';
+        for(let i=0; i<countB; i++) { const img = document.createElement('img'); img.src = itemImg; img.className = 'modG-item'; groupB.appendChild(img); }
         groupB.onclick = () => modG_check('right', groupB);
         arena.appendChild(groupB);
     }
 
     function modG_check(side, el) {
-        const lang = window.appState.currentLang;
-        const code = lang === 'en' ? 'en-US' : 'zh-CN';
-
         if(side === modG_answerSide) {
             el.classList.add('correct');
-            speak(modG_text[lang].correct, code);
-            setTimeout(modG_generateRound, 1500);
+            window.showCelebration("Yes!", "答对了！", "Next Round", "下一轮", initModule);
         } else {
             el.classList.add('wrong');
-            speak(modG_text[lang].wrong, code);
+            window.speak(window.appState.currentLang === 'en' ? "Try again!" : "再试一次！", getLangCode());
             setTimeout(() => el.classList.remove('wrong'), 500);
         }
     }

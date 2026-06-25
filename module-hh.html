@@ -1,30 +1,15 @@
 <style>
-    .modHH-wrap { display: flex; flex-direction: column; align-items: center; width: 100%; padding: 20px; box-sizing: border-box; }
-    .modHH-inst { font-size: 2.5rem; font-weight: 800; color: #4a4a4a; margin-bottom: 50px; text-align: center; }
     .modHH-grid { display: flex; gap: 40px; flex-wrap: wrap; justify-content: center; }
-    
-    .modHH-shape {
-        width: 140px; height: 140px; cursor: pointer; 
-        transition: transform 0.2s; filter: drop-shadow(0px 10px 10px rgba(0,0,0,0.15));
-    }
+    .modHH-shape { width: 140px; height: 140px; cursor: pointer; transition: transform 0.2s; filter: drop-shadow(0px 10px 10px rgba(0,0,0,0.15)); }
     .modHH-shape:active { transform: scale(0.9); }
     .modHH-shape.correct { animation: modHH-flyaway 0.8s forwards; }
     .modHH-shape.wrong { animation: modHH-shake 0.5s; }
-
-    @keyframes modHH-flyaway { 
-        0% { transform: scale(1) rotate(0); opacity: 1; } 
-        100% { transform: scale(0) rotate(360deg) translateY(-200px); opacity: 0; } 
-    }
+    @keyframes modHH-flyaway { 0% { transform: scale(1) rotate(0); opacity: 1; } 100% { transform: scale(0) rotate(360deg) translateY(-200px); opacity: 0; } }
     @keyframes modHH-shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-15px); } 75% { transform: translateX(15px); } }
 </style>
 
-<div class="game-content">
-    <div class="modHH-wrap">
-        <div class="modHH-inst" id="modHH-inst">Tap the Circle!</div>
-        <div class="modHH-grid" id="modHH-grid">
-            <!-- Shapes injected by JS -->
-        </div>
-    </div>
+<div class="module-content">
+    <div class="modHH-grid" id="modHH-grid"></div>
 </div>
 
 <script>
@@ -33,63 +18,35 @@
         { en: 'Square', zh: '正方形', img: 'shape-square.png' },
         { en: 'Triangle', zh: '三角形', img: 'shape-triangle.png' }
     ];
-    let modHH_targetShape;
+    let modHH_target;
 
-    const modHH_text = {
-        en: { instPrefix: "Tap the ", correct: "Yes!", wrong: "Try again!" },
-        zh: { instPrefix: "点击", correct: "答对了！", wrong: "再试一次！" }
-    };
+    function initModule() { modHH_generate(); }
+    function destroyModule() { window.speechSynthesis.cancel(); }
 
-    function initCurrentModule() {
-        modHH_generateRound();
-    }
+    function modHH_generate() {
+        modHH_target = modHH_shapes[Math.floor(Math.random() * modHH_shapes.length)];
+        const shapeName = window.appState.currentLang === 'en' ? modHH_target.en : modHH_target.zh;
+        window.setInstruction(`Tap the ${shapeName}!`, `点击${shapeName}！`);
 
-    function destroyCurrentModule() {
-        window.speechSynthesis.cancel();
-    }
-
-    function modHH_generateRound() {
-        // Pick a random target shape
-        modHH_targetShape = modHH_shapes[Math.floor(Math.random() * modHH_shapes.length)];
-        
-        const lang = window.appState.currentLang;
-        const shapeName = lang === 'en' ? modHH_targetShape.en : modHH_targetShape.zh;
-        const instText = modHH_text[lang].instPrefix + shapeName + (lang === 'en' ? '!' : '！');
-        
-        document.getElementById('modHH-inst').innerText = instText;
-        
-        // Speak the instruction
-        const code = lang === 'en' ? 'en-US' : 'zh-CN';
-        speak(instText, code);
-
-        // Shuffle the 3 shapes for the options
         const options = [...modHH_shapes].sort(() => Math.random() - 0.5);
-        
         const grid = document.getElementById('modHH-grid');
         grid.innerHTML = '';
-
         options.forEach(shape => {
             const img = document.createElement('img');
-            img.src = shape.img;
-            img.className = 'modHH-shape';
-            img.onclick = () => modHH_checkAnswer(shape, img);
+            img.src = shape.img; img.className = 'modHH-shape';
+            img.onclick = () => modHH_check(shape, img);
             grid.appendChild(img);
         });
     }
 
-    function modHH_checkAnswer(shape, imgElement) {
-        const lang = window.appState.currentLang;
-        const code = lang === 'en' ? 'en-US' : 'zh-CN';
-
-        if(shape.en === modHH_targetShape.en) {
-            imgElement.classList.add('correct');
-            speak(modHH_text[lang].correct, code);
-            // Auto-advance after animation
-            setTimeout(modHH_generateRound, 1000);
+    function modHH_check(shape, imgEl) {
+        if(shape.en === modHH_target.en) {
+            imgEl.classList.add('correct');
+            window.showCelebration("Yes!", "答对了！", "Next Shape", "下一个形状", initModule);
         } else {
-            imgElement.classList.add('wrong');
-            speak(modHH_text[lang].wrong, code);
-            setTimeout(() => imgElement.classList.remove('wrong'), 500);
+            imgEl.classList.add('wrong');
+            window.speak(window.appState.currentLang === 'en' ? "Try again!" : "再试一次！", getLangCode());
+            setTimeout(() => imgEl.classList.remove('wrong'), 500);
         }
     }
 </script>

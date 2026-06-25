@@ -1,93 +1,52 @@
 <style>
-    .modGG-wrap { display: flex; flex-direction: column; align-items: center; width: 100%; padding: 20px; box-sizing: border-box; }
-    .modGG-inst { font-size: 2.2rem; font-weight: 800; color: #4a4a4a; margin-bottom: 40px; text-align: center; }
-    
     .modGG-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 25px; max-width: 380px; }
-    
-    .modGG-card {
-        width: 150px; height: 150px; background: white; border-radius: 30px;
-        box-shadow: 0 8px 16px rgba(0,0,0,0.1); display: flex; align-items: center;
-        justify-content: center; cursor: pointer; transition: transform 0.2s;
-    }
+    .modGG-card { width: 150px; height: 150px; background: white; border-radius: 30px; box-shadow: 0 8px 16px rgba(0,0,0,0.1); display: flex; align-items: center; justify-content: center; cursor: pointer; transition: transform 0.2s; }
     .modGG-card:active { transform: scale(0.92); }
     .modGG-card.correct { background: #4ecdc4; animation: modGG-pop 0.6s; }
     .modGG-card.wrong { background: #ff6b6b; animation: modGG-shake 0.5s; }
-    
     .modGG-img { width: 100px; height: 100px; filter: drop-shadow(0px 6px 6px rgba(0,0,0,0.15)); }
-
     @keyframes modGG-pop { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
     @keyframes modGG-shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-10px); } 75% { transform: translateX(10px); } }
 </style>
 
-<div class="game-content">
-    <div class="modGG-wrap">
-        <div class="modGG-inst" id="modGG-inst">Find the different one!</div>
-        <div class="modGG-grid" id="modGG-grid"></div>
-    </div>
+<div class="module-content">
+    <div class="modGG-grid" id="modGG-grid"></div>
 </div>
 
 <script>
     const modGG_items = [
-        { name: 'apple', img: 'apple.png' },
-        { name: 'star', img: 'star.png' },
-        { name: 'banana', img: 'banana.png' },
-        { name: 'orange', img: 'orange.png' },
-        { name: 'watermelon', img: 'watermelon.png' },
-        { name: 'grape', img: 'grape.png' }
+        { name: 'apple', img: 'apple.png' }, { name: 'star', img: 'star.png' },
+        { name: 'banana', img: 'banana.png' }, { name: 'orange', img: 'orange.png' },
+        { name: 'watermelon', img: 'watermelon.png' }, { name: 'grape', img: 'grape.png' }
     ];
     let modGG_oddOne;
 
-    const modGG_text = {
-        en: { inst: "Find the different one!", correct: "Yes!", wrong: "Try again!" },
-        zh: { inst: "找出不一样！", correct: "答对了！", wrong: "再试一次！" }
-    };
+    function initModule() { modGG_generate(); }
+    function destroyModule() { window.speechSynthesis.cancel(); }
 
-    function initCurrentModule() { modGG_generateRound(); }
-    function destroyCurrentModule() { window.speechSynthesis.cancel(); }
-
-    function modGG_generateRound() {
-        const lang = window.appState.currentLang;
-        document.getElementById('modGG-inst').innerText = modGG_text[lang].inst;
-        
-        const code = lang === 'en' ? 'en-US' : 'zh-CN';
-        speak(modGG_text[lang].inst, code);
-
-        // Pick the common item and the odd item
+    function modGG_generate() {
+        window.setInstruction("Find the different one!", "找出不一样！");
         const shuffled = [...modGG_items].sort(() => Math.random() - 0.5);
-        const common = shuffled[0];
-        modGG_oddOne = shuffled[1];
-
-        // Build array: 3 common + 1 odd, then shuffle
+        const common = shuffled[0]; modGG_oddOne = shuffled[1];
         let cards = [common, common, common, modGG_oddOne].sort(() => Math.random() - 0.5);
 
         const grid = document.getElementById('modGG-grid');
         grid.innerHTML = '';
-
         cards.forEach(item => {
-            const card = document.createElement('div');
-            card.className = 'modGG-card';
-            
-            const img = document.createElement('img');
-            img.src = item.img;
-            img.className = 'modGG-img';
-            card.appendChild(img);
-            
+            const card = document.createElement('div'); card.className = 'modGG-card';
+            const img = document.createElement('img'); img.src = item.img; img.className = 'modGG-img'; card.appendChild(img);
             card.onclick = () => modGG_check(item, card);
             grid.appendChild(card);
         });
     }
 
     function modGG_check(item, card) {
-        const lang = window.appState.currentLang;
-        const code = lang === 'en' ? 'en-US' : 'zh-CN';
-
         if(item.name === modGG_oddOne.name) {
             card.classList.add('correct');
-            speak(modGG_text[lang].correct, code);
-            setTimeout(modGG_generateRound, 1300);
+            window.showCelebration("Yes!", "答对了！", "Next Round", "下一轮", initModule);
         } else {
             card.classList.add('wrong');
-            speak(modGG_text[lang].wrong, code);
+            window.speak(window.appState.currentLang === 'en' ? "Try again!" : "再试一次！", getLangCode());
             setTimeout(() => card.classList.remove('wrong'), 500);
         }
     }

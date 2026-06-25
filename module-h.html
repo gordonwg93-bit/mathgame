@@ -1,133 +1,63 @@
 <style>
-    .modH-wrap { display: flex; flex-direction: column; align-items: center; width: 100%; padding: 20px; box-sizing: border-box; }
-    .modH-inst { font-size: 2.2rem; font-weight: 800; color: #4a4a4a; margin-bottom: 30px; text-align: center; }
     .modH-eq { display: flex; align-items: center; gap: 15px; margin-bottom: 40px; flex-wrap: wrap; justify-content: center; }
     .modH-group { display: flex; gap: 10px; }
     .modH-item { width: 70px; height: 70px; filter: drop-shadow(0px 5px 5px rgba(0,0,0,0.15)); }
     .modH-symbol { font-size: 3rem; font-weight: 800; color: #ff6b6b; }
-    
     .modH-choices { display: flex; gap: 20px; flex-wrap: wrap; justify-content: center; }
-    .modH-btn {
-        width: 80px; height: 80px; border-radius: 50%; background: white; border: none;
-        font-size: 2.5rem; font-weight: 800; color: #4a4a4a; box-shadow: 0 6px 0 #d1d1d1;
-        cursor: pointer; transition: transform 0.1s;
-    }
+    .modH-btn { width: 80px; height: 80px; border-radius: 50%; background: white; border: none; font-size: 2.5rem; font-weight: 800; color: #4a4a4a; box-shadow: 0 6px 0 #d1d1d1; cursor: pointer; transition: transform 0.1s; }
     .modH-btn:active { transform: translateY(4px); box-shadow: 0 2px 0 #d1d1d1; }
     .modH-btn.correct { background: #4ecdc4; color: white; box-shadow: 0 6px 0 #3ba89f; animation: modH-pop 0.5s; }
     .modH-btn.wrong { background: #ff6b6b; color: white; box-shadow: 0 6px 0 #d9534f; animation: modH-shake 0.5s; }
-
     @keyframes modH-pop { 0% { transform: scale(1); } 50% { transform: scale(1.2); } 100% { transform: scale(1); } }
     @keyframes modH-shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-10px); } 75% { transform: translateX(10px); } }
 </style>
 
-<div class="game-content">
-    <div class="modH-wrap">
-        <div class="modH-inst" id="modH-inst">What is the total?</div>
-        
-        <div class="modH-eq" id="modH-eq">
-            <!-- Items injected by JS -->
-        </div>
-
-        <div class="modH-choices" id="modH-choices">
-            <!-- Buttons injected by JS -->
-        </div>
-    </div>
+<div class="module-content">
+    <div class="modH-eq" id="modH-eq"></div>
+    <div class="modH-choices" id="modH-choices"></div>
 </div>
 
 <script>
     let modH_a, modH_b, modH_target;
 
-    const modH_text = {
-        en: { inst: "What is the total?", correct: "Yes!", wrong: "Try again!" },
-        zh: { inst: "一共是多少？", correct: "答对了！", wrong: "再试一次！" }
-    };
-
-    function initCurrentModule() {
-        modH_generateQuestion();
-    }
-
-    function destroyCurrentModule() {
-        window.speechSynthesis.cancel();
-    }
-
-    function modH_generateQuestion() {
-        // Generate random numbers that add up to 5 or less
-        modH_a = Math.floor(Math.random() * 3) + 1; // 1 to 3
-        modH_b = Math.floor(Math.random() * (5 - modH_a)) + 1; // ensures sum <= 5
+    function initModule() {
+        modH_a = Math.floor(Math.random() * 3) + 1;
+        modH_b = Math.floor(Math.random() * (5 - modH_a)) + 1;
         modH_target = modH_a + modH_b;
 
-        const lang = window.appState.currentLang;
-        document.getElementById('modH-inst').innerText = modH_text[lang].inst;
+        window.setInstruction("What is the total?", "一共是多少？");
 
-        // Build the equation visually
         const eqDiv = document.getElementById('modH-eq');
         eqDiv.innerHTML = '';
-        
-        // Group A
-        const groupA = document.createElement('div');
-        groupA.className = 'modH-group';
-        for(let i=0; i<modH_a; i++) {
-            const img = document.createElement('img');
-            img.src = 'star.png';
-            img.className = 'modH-item';
-            groupA.appendChild(img);
-        }
+        const groupA = document.createElement('div'); groupA.className = 'modH-group';
+        for(let i=0; i<modH_a; i++) { const img = document.createElement('img'); img.src = 'star.png'; img.className = 'modH-item'; groupA.appendChild(img); }
         eqDiv.appendChild(groupA);
-
-        // Plus
-        const plus = document.createElement('div');
-        plus.className = 'modH-symbol';
-        plus.innerText = '+';
-        eqDiv.appendChild(plus);
-
-        // Group B
-        const groupB = document.createElement('div');
-        groupB.className = 'modH-group';
-        for(let i=0; i<modH_b; i++) {
-            const img = document.createElement('img');
-            img.src = 'star.png';
-            img.className = 'modH-item';
-            groupB.appendChild(img);
-        }
+        const plus = document.createElement('div'); plus.className = 'modH-symbol'; plus.innerText = '+'; eqDiv.appendChild(plus);
+        const groupB = document.createElement('div'); groupB.className = 'modH-group';
+        for(let i=0; i<modH_b; i++) { const img = document.createElement('img'); img.src = 'star.png'; img.className = 'modH-item'; groupB.appendChild(img); }
         eqDiv.appendChild(groupB);
+        const eq = document.createElement('div'); eq.className = 'modH-symbol'; eq.innerText = '='; eqDiv.appendChild(eq);
+        const q = document.createElement('div'); q.className = 'modH-symbol'; q.innerText = '?'; eqDiv.appendChild(q);
 
-        // Equals
-        const eq = document.createElement('div');
-        eq.className = 'modH-symbol';
-        eq.innerText = '=';
-        eqDiv.appendChild(eq);
-
-        // Question Mark
-        const q = document.createElement('div');
-        q.className = 'modH-symbol';
-        q.innerText = '?';
-        eqDiv.appendChild(q);
-
-        // Build choice buttons (1 to 5)
         const choicesDiv = document.getElementById('modH-choices');
         choicesDiv.innerHTML = '';
         for(let i=1; i<=5; i++) {
             const btn = document.createElement('button');
-            btn.className = 'modH-btn';
-            btn.innerText = i;
-            btn.onclick = () => modH_checkAnswer(i, btn);
+            btn.className = 'modH-btn'; btn.innerText = i;
+            btn.onclick = () => modH_check(i, btn);
             choicesDiv.appendChild(btn);
         }
     }
 
-    function modH_checkAnswer(num, btn) {
-        const lang = window.appState.currentLang;
-        const code = lang === 'en' ? 'en-US' : 'zh-CN';
+    function destroyModule() { window.speechSynthesis.cancel(); }
 
+    function modH_check(num, btn) {
         if(num === modH_target) {
             btn.classList.add('correct');
-            speak(modH_text[lang].correct, code);
-            // Auto-advance to next question after 1.5 seconds
-            setTimeout(modH_generateQuestion, 1500);
+            window.showCelebration("Yes!", "答对了！", "Next Question", "下一题", initModule);
         } else {
             btn.classList.add('wrong');
-            speak(modH_text[lang].wrong, code);
-            // Remove wrong animation after it finishes so they can try again
+            window.speak(window.appState.currentLang === 'en' ? "Try again!" : "再试一次！", getLangCode());
             setTimeout(() => btn.classList.remove('wrong'), 500);
         }
     }

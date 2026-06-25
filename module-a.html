@@ -1,91 +1,62 @@
-<!-- STYLES FOR THIS MODULE ONLY -->
+<!-- Game Specific CSS Only -->
 <style>
-    .module-a-instruction { font-size: 2.5rem; font-weight: 800; color: #4a4a4a; margin-bottom: 40px; text-align: center; text-shadow: 2px 2px 0px rgba(255,255,255,0.8); }
-    .module-a-grid { display: flex; gap: 40px; }
-    .module-a-apple { width: 120px; height: auto; cursor: pointer; transition: transform 0.2s; filter: drop-shadow(0px 10px 10px rgba(0,0,0,0.2)); }
-    .module-a-apple:active { transform: scale(0.9); }
-    .module-a-apple.tapped { animation: module-a-pop 0.5s forwards; }
-    
-    .module-a-overlay { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(255, 255, 255, 0.95); display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 60; }
-    .module-a-overlay.show { display: flex; }
-    .module-a-celebrate { font-size: 3.5rem; font-weight: 800; color: #ff6b6b; margin-bottom: 30px; }
-    .module-a-btn { background: #4ecdc4; color: white; border: none; padding: 20px 50px; border-radius: 50px; font-size: 1.8rem; font-weight: 800; box-shadow: 0 6px 0 #3ba89f; cursor: pointer; }
-    .module-a-btn:active { transform: translateY(4px); box-shadow: 0 2px 0 #3ba89f; }
-
-    @keyframes module-a-pop { 0% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.5); opacity: 0.5; } 100% { transform: scale(0); opacity: 0; } }
+    .modA-grid { display: flex; gap: 40px; }
+    .modA-apple { width: 120px; height: auto; cursor: pointer; transition: transform 0.2s; filter: drop-shadow(0px 10px 10px rgba(0,0,0,0.2)); }
+    .modA-apple:active { transform: scale(0.9); }
+    .modA-apple.tapped { animation: modA-pop 0.5s forwards; }
+    @keyframes modA-pop { 0% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.5); opacity: 0.5; } 100% { transform: scale(0); opacity: 0; } }
 </style>
 
-<!-- THE GAME HTML -->
-<div class="game-content">
-    <div class="module-a-instruction" id="mod-a-instruction">Tap 3 Apples!</div>
-    <div class="module-a-grid">
-        <img src="apple.png" class="module-a-apple" onclick="modA_tapApple(this)">
-        <img src="apple.png" class="module-a-apple" onclick="modA_tapApple(this)">
-        <img src="apple.png" class="module-a-apple" onclick="modA_tapApple(this)">
-    </div>
-
-    <div class="module-a-overlay" id="mod-a-overlay">
-        <div class="module-a-celebrate" id="mod-a-celebrate">Great Job!</div>
-        <button class="module-a-btn" onclick="modA_reset()">Play Again</button>
+<!-- Game Content Only (Injected into the Shell) -->
+<div class="module-content">
+    <div class="modA-grid" id="modA-grid">
+        <img src="apple.png" class="modA-apple" onclick="modA_tap(this)">
+        <img src="apple.png" class="modA-apple" onclick="modA_tap(this)">
+        <img src="apple.png" class="modA-apple" onclick="modA_tap(this)">
     </div>
 </div>
 
-<!-- THE GAME LOGIC -->
+<!-- Game Logic Only -->
 <script>
-    // Local state for this module
-    let modA_target = 3;
     let modA_count = 0;
+    const modA_target = 3;
 
-    const modA_text = {
-        en: { instruction: "Tap 3 Apples!", celebrate: "Great Job! 🌟", btn: "Play Again", nums: ["", "One!", "Two!", "Three!"] },
-        zh: { instruction: "点击 3 个苹果！", celebrate: "太棒了！🌟", btn: "再玩一次", nums: ["", "一！", "二！", "三！"] }
-    };
-
-    // This function runs automatically when the Hub stitches this module in!
-    function initCurrentModule() {
+    // Called by the Shell when the game loads
+    function initModule() {
         modA_count = 0;
-        modA_updateUI();
-        const lang = window.appState.currentLang;
-        const code = lang === 'en' ? 'en-US' : 'zh-CN';
-        speak(modA_text[lang].instruction, code);
+        document.querySelectorAll('.modA-apple').forEach(a => a.classList.remove('tapped'));
+        
+        // Tell the Shell what the instruction is (EN, ZH)
+        window.setInstruction("Tap 3 Apples!", "点击 3 个苹果！");
+        
+        // Tell the Shell what the 🔊 button should do
+        window.setRepeatFunction(() => {
+            window.speak(window.appState.currentLang === 'en' ? "Tap 3 Apples!" : "点击 3 个苹果！", getLangCode());
+        });
     }
 
-    // This function runs when the user clicks the Home button
-    function destroyCurrentModule() {
-        window.speechSynthesis.cancel(); // Stop audio when leaving
+    // Called by the Shell when leaving the game
+    function destroyModule() {
+        window.speechSynthesis.cancel();
     }
 
-    function modA_updateUI() {
-        const lang = window.appState.currentLang;
-        document.getElementById('mod-a-instruction').innerText = modA_text[lang].instruction;
-        document.getElementById('mod-a-celebrate').innerText = modA_text[lang].celebrate;
-        document.querySelector('.module-a-btn').innerText = modA_text[lang].btn;
-    }
-
-    function modA_tapApple(el) {
+    // Game Specific Logic
+    function modA_tap(el) {
         if (el.classList.contains('tapped')) return;
         el.classList.add('tapped');
         modA_count++;
-        
-        const lang = window.appState.currentLang;
-        const code = lang === 'en' ? 'en-US' : 'zh-CN';
-        speak(modA_text[lang].nums[modA_count], code);
+
+        const numsEn = ["", "One", "Two", "Three"];
+        const numsZh = ["", "一", "二", "三"];
+        window.speak(window.appState.currentLang === 'en' ? numsEn[modA_count] : numsZh[modA_count], getLangCode());
 
         if (modA_count === modA_target) {
-            setTimeout(() => {
-                document.getElementById('mod-a-overlay').classList.add('show');
-                speak(modA_text[lang].celebrate, code);
-            }, 600);
+            // Tell the Shell to show the Universal Celebration Overlay!
+            window.showCelebration(
+                "Great Job!", "太棒了！",       // Celebration text (EN, ZH)
+                "Play Again", "再玩一次",       // Next button text (EN, ZH)
+                initModule                     // What to do when they click "Next"
+            );
         }
-    }
-
-    function modA_reset() {
-        modA_count = 0;
-        document.getElementById('mod-a-overlay').classList.remove('show');
-        document.querySelectorAll('.module-a-apple').forEach(a => a.classList.remove('tapped'));
-        
-        const lang = window.appState.currentLang;
-        const code = lang === 'en' ? 'en-US' : 'zh-CN';
-        speak(modA_text[lang].instruction, code);
     }
 </script>
