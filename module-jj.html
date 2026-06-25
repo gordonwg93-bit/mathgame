@@ -1,0 +1,86 @@
+<style>
+    .modJJ-wrap { display: flex; flex-direction: column; align-items: center; width: 100%; padding: 20px; box-sizing: border-box; }
+    .modJJ-inst { font-size: 2.5rem; font-weight: 800; color: #4a4a4a; margin-bottom: 50px; text-align: center; }
+    .modJJ-grid { display: flex; gap: 40px; flex-wrap: wrap; justify-content: center; }
+    
+    .modJJ-shape {
+        width: 140px; height: 140px; cursor: pointer; 
+        transition: transform 0.2s; filter: drop-shadow(0px 10px 10px rgba(0,0,0,0.15));
+    }
+    .modJJ-shape:active { transform: scale(0.9); }
+    .modJJ-shape.correct { animation: modJJ-flyaway 0.8s forwards; }
+    .modJJ-shape.wrong { animation: modJJ-shake 0.5s; }
+
+    @keyframes modJJ-flyaway { 
+        0% { transform: scale(1) rotate(0); opacity: 1; } 
+        100% { transform: scale(0) rotate(360deg) translateY(-200px); opacity: 0; } 
+    }
+    @keyframes modJJ-shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-15px); } 75% { transform: translateX(15px); } }
+</style>
+
+<div class="game-content">
+    <div class="modJJ-wrap">
+        <div class="modJJ-inst" id="modJJ-inst">Tap the Cube!</div>
+        <div class="modJJ-grid" id="modJJ-grid">
+            <!-- Shapes injected by JS -->
+        </div>
+    </div>
+</div>
+
+<script>
+    const modJJ_shapes = [
+        { en: 'Cube', zh: '正方体', img: 'shape-cube.png' },
+        { en: 'Sphere', zh: '球体', img: 'shape-sphere.png' },
+        { en: 'Cylinder', zh: '圆柱', img: 'shape-cylinder.png' }
+    ];
+    let modJJ_targetShape;
+
+    const modJJ_text = {
+        en: { instPrefix: "Tap the ", correct: "Yes!", wrong: "Try again!" },
+        zh: { instPrefix: "点击", correct: "答对了！", wrong: "再试一次！" }
+    };
+
+    function initCurrentModule() { modJJ_generateRound(); }
+    function destroyCurrentModule() { window.speechSynthesis.cancel(); }
+
+    function modJJ_generateRound() {
+        modJJ_targetShape = modJJ_shapes[Math.floor(Math.random() * modJJ_shapes.length)];
+        
+        const lang = window.appState.currentLang;
+        const shapeName = lang === 'en' ? modJJ_targetShape.en : modJJ_targetShape.zh;
+        const instText = modJJ_text[lang].instPrefix + shapeName + (lang === 'en' ? '!' : '！');
+        
+        document.getElementById('modJJ-inst').innerText = instText;
+        
+        const code = lang === 'en' ? 'en-US' : 'zh-CN';
+        speak(instText, code);
+
+        const options = [...modJJ_shapes].sort(() => Math.random() - 0.5);
+        
+        const grid = document.getElementById('modJJ-grid');
+        grid.innerHTML = '';
+
+        options.forEach(shape => {
+            const img = document.createElement('img');
+            img.src = shape.img;
+            img.className = 'modJJ-shape';
+            img.onclick = () => modJJ_checkAnswer(shape, img);
+            grid.appendChild(img);
+        });
+    }
+
+    function modJJ_checkAnswer(shape, imgElement) {
+        const lang = window.appState.currentLang;
+        const code = lang === 'en' ? 'en-US' : 'zh-CN';
+
+        if(shape.en === modJJ_targetShape.en) {
+            imgElement.classList.add('correct');
+            speak(modJJ_text[lang].correct, code);
+            setTimeout(modJJ_generateRound, 1000);
+        } else {
+            imgElement.classList.add('wrong');
+            speak(modJJ_text[lang].wrong, code);
+            setTimeout(() => imgElement.classList.remove('wrong'), 500);
+        }
+    }
+</script>

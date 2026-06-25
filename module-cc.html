@@ -1,0 +1,130 @@
+<style>
+    .modCC-wrap { display: flex; flex-direction: column; align-items: center; width: 100%; padding: 20px; box-sizing: border-box; }
+    .modCC-inst { font-size: 2.2rem; font-weight: 800; color: #4a4a4a; margin-bottom: 40px; text-align: center; }
+    
+    .modCC-pond { display: flex; gap: 15px; margin-bottom: 40px; align-items: center; flex-wrap: wrap; justify-content: center; }
+    
+    .modCC-pad {
+        width: 100px; height: 100px; cursor: pointer; transition: transform 0.2s;
+        position: relative; display: flex; align-items: center; justify-content: center;
+    }
+    .modCC-pad img { width: 100%; height: 100%; filter: drop-shadow(0px 5px 5px rgba(0,0,0,0.15)); }
+    .modCC-pad:active { transform: scale(0.9); }
+    
+    .modCC-num {
+        position: absolute; top: -20px; font-size: 2rem; font-weight: 800; color: #ff6b6b;
+        opacity: 0; transform: translateY(10px); transition: all 0.3s;
+    }
+    .modCC-pad.jumped .modCC-num { opacity: 1; transform: translateY(0); }
+
+    .modCC-frog {
+        width: 70px; height: 70px; position: absolute; top: -30px; left: 15px;
+        filter: drop-shadow(0px 8px 8px rgba(0,0,0,0.2)); z-index: 10; pointer-events: none;
+        transition: all 0.3s;
+    }
+    .modCC-frog.jump-anim { animation: modCC-leap 0.4s; }
+    @keyframes modCC-leap {
+        0% { transform: translateY(0) scale(1); }
+        50% { transform: translateY(-40px) scale(1.1); }
+        100% { transform: translateY(0) scale(1); }
+    }
+
+    .modCC-next-btn {
+        background: #4ecdc4; color: white; border: none; padding: 15px 40px; border-radius: 50px;
+        font-size: 1.5rem; font-weight: 800; box-shadow: 0 6px 0 #3ba89f; cursor: pointer; display: none;
+    }
+    .modCC-next-btn.show { display: block; }
+</style>
+
+<div class="game-content">
+    <div class="modCC-wrap">
+        <div class="modCC-inst" id="modCC-inst">Count by 2s! Tap the lily pads.</div>
+        <div class="modCC-pond" id="modCC-pond">
+            <!-- Pads injected by JS -->
+        </div>
+        <button class="modCC-next-btn" id="modCC-next" onclick="modCC_reset()">Play Again!</button>
+    </div>
+</div>
+
+<script>
+    let modCC_currentStep = 0;
+    const modCC_maxSteps = 5;
+
+    const modCC_text = {
+        en: { inst: "Count by 2s! Tap the lily pads.", done: "Great jumping!", next: "Play Again!" },
+        zh: { inst: "两个两个数！点击荷叶。", done: "跳得太棒了！", next: "再玩一次！" }
+    };
+
+    function initCurrentModule() { modCC_setup(); }
+    function destroyCurrentModule() { window.speechSynthesis.cancel(); }
+
+    function modCC_setup() {
+        modCC_currentStep = 0;
+        const lang = window.appState.currentLang;
+        document.getElementById('modCC-inst').innerText = modCC_text[lang].inst;
+        document.getElementById('modCC-next').classList.remove('show');
+
+        const pond = document.getElementById('modCC-pond');
+        pond.innerHTML = '';
+
+        // Create the frog and put it in a starting "pad"
+        const startPad = document.createElement('div');
+        startPad.className = 'modCC-pad';
+        startPad.style.visibility = 'hidden'; // Invisible starting pad
+        pond.appendChild(startPad);
+
+        const frog = document.createElement('img');
+        frog.src = 'frog.png';
+        frog.className = 'modCC-frog';
+        frog.id = 'modCC-frog';
+        startPad.appendChild(frog);
+
+        // Create 5 lily pads
+        for(let i=1; i<=modCC_maxSteps; i++) {
+            const pad = document.createElement('div');
+            pad.className = 'modCC-pad';
+            pad.id = `modCC-pad-${i}`;
+            pad.innerHTML = `
+                <img src="lilypad.png">
+                <div class="modCC-num">${i * 2}</div>
+            `;
+            pad.onclick = () => modCC_jump(i, pad);
+            pond.appendChild(pad);
+        }
+    }
+
+    function modCC_jump(step, padEl) {
+        if(step !== modCC_currentStep + 1) return; // Must jump in order
+        
+        modCC_currentStep = step;
+        const frog = document.getElementById('modCC-frog');
+        
+        // Move frog to the new pad by appending it
+        padEl.appendChild(frog);
+        frog.classList.add('jump-anim');
+        setTimeout(() => frog.classList.remove('jump-anim'), 400);
+
+        padEl.classList.add('jumped');
+
+        // Speak number
+        const num = step * 2;
+        const lang = window.appState.currentLang;
+        const code = lang === 'en' ? 'en-US' : 'zh-CN';
+        
+        const nums = { 2: 'Two', 4: 'Four', 6: 'Six', 8: 'Eight', 10: 'Ten' };
+        const numsZh = { 2: '二', 4: '四', 6: '六', 8: '八', 10: '十' };
+        speak(lang === 'en' ? nums[num] : numsZh[num], code);
+
+        if(step === modCC_maxSteps) {
+            setTimeout(() => {
+                document.getElementById('modCC-inst').innerText = modCC_text[lang].done;
+                speak(modCC_text[lang].done, code);
+                document.getElementById('modCC-next').classList.add('show');
+            }, 800);
+        }
+    }
+
+    function modCC_reset() {
+        modCC_setup();
+    }
+</script>

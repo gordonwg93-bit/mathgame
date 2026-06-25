@@ -1,0 +1,115 @@
+<style>
+    .modFF-wrap { display: flex; flex-direction: column; align-items: center; width: 100%; padding: 20px; box-sizing: border-box; }
+    .modFF-inst { font-size: 2.2rem; font-weight: 800; color: #4a4a4a; margin-bottom: 30px; text-align: center; }
+    
+    .modFF-grid {
+        display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr;
+        width: 300px; height: 300px; gap: 10px; margin-bottom: 40px;
+        background: white; padding: 15px; border-radius: 30px; box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+    }
+    .modFF-cell {
+        border-radius: 20px; display: flex; align-items: center; justify-content: center;
+        position: relative;
+    }
+    .modFF-cell:nth-child(1) { background: #ffe0e0; } /* Top Left - Pink */
+    .modFF-cell:nth-child(2) { background: #e0f7fa; } /* Top Right - Blue */
+    .modFF-cell:nth-child(3) { background: #e8f5e9; } /* Bottom Left - Green */
+    .modFF-cell:nth-child(4) { background: #fff9c4; } /* Bottom Right - Yellow */
+
+    .modFF-bunny { width: 100px; height: 100px; filter: drop-shadow(0px 5px 5px rgba(0,0,0,0.15)); animation: modFF-hop 2s infinite; }
+    @keyframes modFF-hop { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+
+    .modFF-choices { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; width: 100%; max-width: 400px; }
+    .modFF-btn {
+        padding: 15px; border-radius: 20px; background: white; border: none;
+        font-size: 1.3rem; font-weight: 800; color: #4a4a4a; box-shadow: 0 5px 0 #d1d1d1;
+        cursor: pointer; transition: transform 0.1s;
+    }
+    .modFF-btn:active { transform: translateY(3px); box-shadow: 0 2px 0 #d1d1d1; }
+    .modFF-btn.correct { background: #4ecdc4; color: white; box-shadow: 0 5px 0 #3ba89f; }
+    .modFF-btn.wrong { background: #ff6b6b; color: white; box-shadow: 0 5px 0 #d9534f; animation: modFF-shake 0.5s; }
+
+    @keyframes modFF-shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
+</style>
+
+<div class="game-content">
+    <div class="modFF-wrap">
+        <div class="modFF-inst" id="modFF-inst">Where is the bunny?</div>
+        <div class="modFF-grid" id="modFF-grid">
+            <div class="modFF-cell" id="cell-tl"></div>
+            <div class="modFF-cell" id="cell-tr"></div>
+            <div class="modFF-cell" id="cell-bl"></div>
+            <div class="modFF-cell" id="cell-br"></div>
+        </div>
+        <div class="modFF-choices" id="modFF-choices"></div>
+    </div>
+</div>
+
+<script>
+    const modFF_positions = [
+        { id: 'cell-tl', en: 'Top Left', zh: '左上' },
+        { id: 'cell-tr', en: 'Top Right', zh: '右上' },
+        { id: 'cell-bl', en: 'Bottom Left', zh: '左下' },
+        { id: 'cell-br', en: 'Bottom Right', zh: '右下' }
+    ];
+    let modFF_targetPos;
+
+    const modFF_text = {
+        en: { inst: "Where is the bunny?", correct: "Yes!", wrong: "Try again!" },
+        zh: { inst: "小兔子在哪里？", correct: "答对了！", wrong: "再试一次！" }
+    };
+
+    function initCurrentModule() { modFF_generateRound(); }
+    function destroyCurrentModule() { 
+        window.speechSynthesis.cancel(); 
+        // Clean up bunny images
+        document.querySelectorAll('.modFF-bunny').forEach(b => b.remove());
+    }
+
+    function modFF_generateRound() {
+        // Clear previous bunny
+        document.querySelectorAll('.modFF-bunny').forEach(b => b.remove());
+
+        // Pick random position
+        modFF_targetPos = modFF_positions[Math.floor(Math.random() * modFF_positions.length)];
+        
+        // Place bunny
+        const cell = document.getElementById(modFF_targetPos.id);
+        const bunny = document.createElement('img');
+        bunny.src = 'bunny.png';
+        bunny.className = 'modFF-bunny';
+        cell.appendChild(bunny);
+
+        const lang = window.appState.currentLang;
+        document.getElementById('modFF-inst').innerText = modFF_text[lang].inst;
+
+        // Build choices
+        const choicesDiv = document.getElementById('modFF-choices');
+        choicesDiv.innerHTML = '';
+        
+        // Shuffle options
+        const options = [...modFF_positions].sort(() => Math.random() - 0.5);
+        options.forEach(pos => {
+            const btn = document.createElement('button');
+            btn.className = 'modFF-btn';
+            btn.innerText = lang === 'en' ? pos.en : pos.zh;
+            btn.onclick = () => modFF_checkAnswer(pos, btn);
+            choicesDiv.appendChild(btn);
+        });
+    }
+
+    function modFF_checkAnswer(pos, btn) {
+        const lang = window.appState.currentLang;
+        const code = lang === 'en' ? 'en-US' : 'zh-CN';
+
+        if(pos.id === modFF_targetPos.id) {
+            btn.classList.add('correct');
+            speak(modFF_text[lang].correct, code);
+            setTimeout(modFF_generateRound, 1500);
+        } else {
+            btn.classList.add('wrong');
+            speak(modFF_text[lang].wrong, code);
+            setTimeout(() => btn.classList.remove('wrong'), 500);
+        }
+    }
+</script>

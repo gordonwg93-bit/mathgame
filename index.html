@@ -16,7 +16,6 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@600;800&display=swap');
         
-        /* --- GLOBAL STYLES --- */
         body { 
             margin: 0; padding: 0; font-family: 'Nunito', sans-serif; 
             background: linear-gradient(to bottom right, #e0f7fa, #fce4ec); 
@@ -47,29 +46,30 @@
         }
         .screen.active { display: flex; }
         
-        /* --- MAP SCREEN (THE HUB) --- */
+        /* --- MAP SCREEN --- */
         .map-title { 
             font-size: 2.5rem; font-weight: 800; color: #4a4a4a; 
-            margin-bottom: 40px; text-align: center;
+            margin-bottom: 30px; text-align: center;
             text-shadow: 2px 2px 0px rgba(255,255,255,0.8); 
         }
         
         .module-grid { 
-            display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); 
-            gap: 30px; width: 90%; max-width: 800px; 
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); 
+            gap: 20px; width: 90%; max-width: 900px; padding-bottom: 40px;
+            overflow-y: auto; max-height: 75vh;
         }
         
         .module-card {
-            background: white; border-radius: 30px; padding: 30px 20px; text-align: center;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.1); cursor: pointer; transition: transform 0.2s;
-            display: flex; flex-direction: column; align-items: center; gap: 15px;
+            background: white; border-radius: 25px; padding: 25px 15px; text-align: center;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.08); cursor: pointer; transition: transform 0.2s;
+            display: flex; flex-direction: column; align-items: center; gap: 12px;
         }
         .module-card:active { transform: scale(0.95); }
-        .module-card.locked { background: #e0e0e0; opacity: 0.6; cursor: not-allowed; }
-        .module-icon { font-size: 4rem; }
-        .module-title { font-size: 1.2rem; font-weight: 800; color: #4a4a4a; }
+        .module-card.locked { background: #e8e8e8; opacity: 0.5; cursor: not-allowed; }
+        .module-icon { font-size: 3.5rem; }
+        .module-title { font-size: 1.1rem; font-weight: 800; color: #4a4a4a; line-height: 1.2; }
 
-        /* --- GAME SCREEN (THE SPOKES) --- */
+        /* --- GAME SCREEN --- */
         #game-screen { 
             position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
             background: linear-gradient(to bottom right, #e0f7fa, #fce4ec); z-index: 50; 
@@ -87,13 +87,18 @@
             width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; 
         }
 
+        /* --- SCROLLBAR STYLING (for map) --- */
+        .module-grid::-webkit-scrollbar { width: 8px; }
+        .module-grid::-webkit-scrollbar-track { background: transparent; }
+        .module-grid::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.15); border-radius: 10px; }
+
         /* --- ANIMATIONS --- */
         @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-15px); } }
     </style>
 </head>
 <body>
 
-    <!-- TOP BAR (Always visible) -->
+    <!-- TOP BAR -->
     <div class="top-bar">
         <img src="panda.png" class="mascot-img" alt="Mascot">
         <button class="lang-toggle" onclick="toggleLanguage()">中文 / EN</button>
@@ -102,17 +107,13 @@
     <!-- SCREEN 1: THE MAP -->
     <div id="map-screen" class="screen active">
         <div class="map-title" id="map-title">Choose a Game!</div>
-        <div class="module-grid" id="module-grid">
-            <!-- Modules will be injected here by JS -->
-        </div>
+        <div class="module-grid" id="module-grid"></div>
     </div>
 
     <!-- SCREEN 2: THE GAME -->
     <div id="game-screen" class="screen">
         <button class="back-btn" onclick="backToMap()">🏠</button>
-        <div id="game-container">
-            <!-- Dynamic modules load here -->
-        </div>
+        <div id="game-container"></div>
     </div>
 
     <script>
@@ -121,20 +122,39 @@
         // ==========================================
         window.appState = { currentLang: 'en' };
 
-        // ADD NEW MODULES HERE! (No file limit!)
+        // 🎮 ALL MODULES LIVE HERE — ADD UNLIMITED MODULES!
         const MODULE_REGISTRY = [
-            { id: 'module-a', file: 'module-a.html', icon: '🍎', titleEn: 'Apple Orchard', titleZh: '苹果园', unlocked: true },
-            { id: 'module-h', file: 'module-h.html', icon: '🧺', titleEn: 'Picnic River', titleZh: '野餐河', unlocked: true },
-            { id: 'module-hh', file: 'module-hh.html', icon: '🏰', titleEn: 'Shape Castle', titleZh: '形状城堡', unlocked: true },
-            { id: 'module-ee', file: 'module-ee.html', icon: '🐛', titleEn: 'Pattern Forest', titleZh: '图案森林', unlocked: false } // Coming soon!
+            // --- COUNTING & NUMBERS ---
+            { id: 'module-a',  file: 'module-a.html',  icon: '🍎', titleEn: 'Apple Orchard',     titleZh: '苹果园',       unlocked: true },
+            { id: 'module-bb', file: 'module-bb.html', icon: '🔢', titleEn: 'Teen Numbers',       titleZh: '十几的数字',    unlocked: true },
+            { id: 'module-cc', file: 'module-cc.html', icon: '🐸', titleEn: 'Frog Skip-Count',    titleZh: '青蛙跳数',     unlocked: true }, // UNLOCKED!
+            
+            // --- ADDITION & SUBTRACTION ---
+            { id: 'module-h',  file: 'module-h.html',  icon: '⭐', titleEn: 'Picnic River',       titleZh: '野餐河',       unlocked: true },
+            { id: 'module-p',  file: 'module-p.html',  icon: '🍽️', titleEn: 'Eat the Apples!',    titleZh: '吃苹果！',     unlocked: true },
+            
+            // --- COMPARING & LOGIC ---
+            { id: 'module-g',  file: 'module-g.html',  icon: '⚖️', titleEn: 'Which Has More?',    titleZh: '哪边更多？',    unlocked: true },
+            { id: 'module-ee', file: 'module-ee.html', icon: '🐛', titleEn: 'Pattern Forest',     titleZh: '图案森林',     unlocked: true },
+            { id: 'module-gg', file: 'module-gg.html', icon: '🔍', titleEn: 'Odd One Out',        titleZh: '找不同',       unlocked: true },
+            { id: 'module-mm', file: 'module-mm.html', icon: '🧺', titleEn: 'Sort the Fruits',    titleZh: '分水果',       unlocked: true }, // UNLOCKED!
+            
+            // --- SHAPES & SPACE ---
+            { id: 'module-hh', file: 'module-hh.html', icon: '🏰', titleEn: 'Shape Castle',       titleZh: '形状城堡',     unlocked: true },
+            { id: 'module-jj', file: 'module-jj.html', icon: '🎲', titleEn: '3D Shape Lab',       titleZh: '立体形状',     unlocked: true }, // UNLOCKED!
+            { id: 'module-ff', file: 'module-ff.html', icon: '🐰', titleEn: 'Bunny Positions',    titleZh: '兔子位置',     unlocked: true },
+
+            // --- COMING SOON (Locked) ---
+            { id: 'module-kk', file: 'module-kk.html', icon: '🏠', titleEn: 'Shapes in the Wild', titleZh: '生活中的形状', unlocked: false },
+            { id: 'module-nn', file: 'module-nn.html', icon: '📊', titleEn: 'Picture Graphs',     titleZh: '图片图表',     unlocked: false }
         ];
 
         // ==========================================
         // 🗣️ BILINGUAL ENGINE
         // ==========================================
         const uiText = {
-            en: { mapTitle: "Choose a Game!", back: "Home" },
-            zh: { mapTitle: "选择游戏！", back: "回家" }
+            en: { mapTitle: "Choose a Game!" },
+            zh: { mapTitle: "选择游戏！" }
         };
 
         function speak(text, langCode) {
@@ -149,8 +169,8 @@
         function toggleLanguage() {
             window.appState.currentLang = window.appState.currentLang === 'en' ? 'zh' : 'en';
             updateMapUI();
-            const langCode = window.appState.currentLang === 'en' ? 'en-US' : 'zh-CN';
-            speak(uiText[window.appState.currentLang].mapTitle, langCode);
+            const code = window.appState.currentLang === 'en' ? 'en-US' : 'zh-CN';
+            speak(uiText[window.appState.currentLang].mapTitle, code);
         }
 
         function updateMapUI() {
@@ -158,7 +178,7 @@
             document.getElementById('map-title').innerText = uiText[lang].mapTitle;
             
             const grid = document.getElementById('module-grid');
-            grid.innerHTML = ''; // Clear old cards
+            grid.innerHTML = '';
 
             MODULE_REGISTRY.forEach(mod => {
                 const card = document.createElement('div');
@@ -166,6 +186,7 @@
                 card.innerHTML = `
                     <div class="module-icon">${mod.icon}</div>
                     <div class="module-title">${lang === 'en' ? mod.titleEn : mod.titleZh}</div>
+                    ${mod.unlocked ? '' : '<div style="font-size:1.5rem;">🔒</div>'}
                 `;
                 if (mod.unlocked) {
                     card.onclick = () => loadModule(mod.file);
@@ -175,7 +196,7 @@
         }
 
         // ==========================================
-        // 🪡 THE DYNAMIC STITCHER (Module Loader)
+        // 🪡 THE DYNAMIC STITCHER
         // ==========================================
         async function loadModule(file) {
             try {
@@ -183,23 +204,22 @@
                 if (!response.ok) throw new Error('Module not found');
                 const htmlText = await response.text();
 
-                // Create a temporary container to parse the HTML
                 const tempDiv = document.createElement('div');
                 tempDiv.innerHTML = htmlText;
 
-                // 1. Inject Styles
+                // Inject Styles
                 tempDiv.querySelectorAll('style').forEach(style => {
                     style.setAttribute('data-dynamic-module', 'true');
                     document.head.appendChild(style);
                 });
 
-                // 2. Inject Game HTML
+                // Inject HTML
                 const gameContent = tempDiv.querySelector('.game-content');
                 const container = document.getElementById('game-container');
                 container.innerHTML = '';
-                container.appendChild(gameContent);
+                if (gameContent) container.appendChild(gameContent);
 
-                // 3. Inject and Execute Scripts
+                // Inject & Execute Scripts
                 tempDiv.querySelectorAll('script').forEach(oldScript => {
                     const newScript = document.createElement('script');
                     newScript.setAttribute('data-dynamic-module', 'true');
@@ -207,12 +227,12 @@
                     document.body.appendChild(newScript);
                 });
 
-                // 4. Initialize the game
+                // Init game
                 if (typeof window.initCurrentModule === 'function') {
                     window.initCurrentModule();
                 }
 
-                // Switch screens
+                // Switch screen
                 document.getElementById('map-screen').classList.remove('active');
                 document.getElementById('game-screen').classList.add('active');
 
@@ -223,23 +243,17 @@
         }
 
         function backToMap() {
-            // 1. Let the game clean up its own timers/intervals
             if (typeof window.destroyCurrentModule === 'function') {
                 window.destroyCurrentModule();
             }
-            
-            // 2. Clear the screen
             document.getElementById('game-container').innerHTML = '';
-            
-            // 3. Remove injected CSS and JS to prevent memory leaks
             document.querySelectorAll('[data-dynamic-module]').forEach(el => el.remove());
-
-            // 4. Switch screens
             document.getElementById('game-screen').classList.remove('active');
             document.getElementById('map-screen').classList.add('active');
+            updateMapUI(); // Refresh map in case language changed during game
         }
 
-        // --- INITIALIZATION ---
+        // --- INIT ---
         window.onload = () => {
             updateMapUI();
             setTimeout(() => speak(uiText[window.appState.currentLang].mapTitle, 'en-US'), 500);
