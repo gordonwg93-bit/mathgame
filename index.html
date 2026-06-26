@@ -100,6 +100,7 @@
         </div>
     </div>
 
+    <!-- Parent Gate Modal -->
     <div id="parent-gate-modal" class="parent-modal">
         <div class="modal-content">
             <button class="modal-close" onclick="closeParentGate()">✕</button>
@@ -113,6 +114,7 @@
         </div>
     </div>
 
+    <!-- Parent Monitor Dashboard Modal -->
     <div id="parent-dashboard-modal" class="parent-modal">
         <div class="modal-content">
             <button class="modal-close" onclick="closeParentDashboard()">✕</button>
@@ -132,7 +134,8 @@
 
                 <h3 style="margin: 20px 0 10px 0; font-size: 1.2rem; color: #4a4a4a;">Recent Activity Log</h3>
                 <div class="history-list" id="dashboard-history-log">
-                    </div>
+                    <!-- Dynamic entries loaded here -->
+                </div>
 
                 <div style="margin-top: 30px; text-align: center;">
                     <button class="parent-btn" style="background:#aaa; font-size:0.9rem;" onclick="clearProgressData()">Clear All Records</button>
@@ -191,25 +194,20 @@
                 if (!moduleId) return;
                 let data = this.getData();
                 
-                // Increment individual completion trackers
                 data.completionCounts[moduleId] = (data.completionCounts[moduleId] || 0) + 1;
                 
-                // Add event into chronological logs
                 const timestamp = new Date().toLocaleString(window.appState.currentLang === 'zh' ? 'zh-CN' : 'en-AU', {
                     month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
                 });
                 data.log.unshift({ moduleId: moduleId, title: titleEn, time: timestamp });
                 
-                // Cap log array size to avoid bloat
                 if(data.log.length > 50) data.log.pop();
                 
                 this.saveData(data);
             }
         };
 
-        // ==========================================
         //  COMPLETE IXL FOUNDATION SYLLABUS REGISTRY
-        // ==========================================
         const MODULE_REGISTRY = [
             // --- COUNTING & NUMBERS ---
             { id: 'module-a', file: 'module-a.html', icon: '🤟', titleEn: 'Count to 3', titleZh: '数到3', unlocked: true },
@@ -293,7 +291,6 @@
         window.showCelebration = function(enText, zhText, nextBtnEn, nextBtnZh, nextFunc) {
             sfxEngine.play('chime'); 
             
-            // Log active progress quietly into system memory
             if (window.appState.currentLoadedModuleId) {
                 const currentMod = MODULE_REGISTRY.find(m => m.id === window.appState.currentLoadedModuleId);
                 const titleStr = currentMod ? currentMod.titleEn : 'Unknown Game';
@@ -337,7 +334,6 @@
                 const card = document.createElement('div');
                 card.className = `module-card ${mod.unlocked ? '' : 'locked'}`;
                 
-                // Show a clean count badge if completed one or more times
                 const compCount = progressData.completionCounts[mod.id] || 0;
                 const badgeHtml = compCount > 0 ? `<div class="badge-count">${compCount}</div>` : '';
 
@@ -375,7 +371,7 @@
                     document.body.appendChild(newScript);
                 });
 
-                window.appState.currentLoadedModuleId = id; // Trace active assignment
+                window.appState.currentLoadedModuleId = id; 
 
                 if (typeof window.initModule === 'function') window.initModule();
                 document.getElementById('global-back-btn').style.display = 'flex';
@@ -406,7 +402,6 @@
             pandaClickCount++;
             clearTimeout(pandaClickTimer);
             
-            // Clear countdown tracking if clicks spread over 3 full seconds
             pandaClickTimer = setTimeout(() => { pandaClickCount = 0; }, 3000);
 
             if (pandaClickCount >= 5) {
@@ -440,7 +435,6 @@
         function openParentDashboard() {
             const data = trackerEngine.getData();
             
-            // Calculate statistical properties
             let totalPlays = 0;
             for (let id in data.completionCounts) {
                 totalPlays += data.completionCounts[id];
@@ -450,7 +444,6 @@
             document.getElementById('stat-total-plays').innerText = totalPlays;
             document.getElementById('stat-unique-games').innerText = `${uniqueMastered} / ${MODULE_REGISTRY.length}`;
 
-            // Populate chronological activity feed
             const logContainer = document.getElementById('dashboard-history-log');
             logContainer.innerHTML = '';
 
@@ -472,16 +465,15 @@
         }
 
         function closeParentDashboard() {
-            document.getElementById('parent-dashboard-modal').classList.remove('remove'); // fallback safety
             document.getElementById('parent-dashboard-modal').classList.remove('show');
-            updateMapUI(); // Refreshes badge count indicators
+            updateMapUI(); 
         }
 
         function clearProgressData() {
             const confirmation = confirm(window.appState.currentLang === 'zh' ? '确定要清空所有的学习记录吗？' : 'Are you sure you want to completely erase all tracking history?');
             if (confirmation) {
                 localStorage.removeItem('baos_math_progress');
-                openParentDashboard(); // re-render layout numbers
+                openParentDashboard(); 
             }
         }
 
@@ -489,6 +481,19 @@
             updateMapUI();
             setTimeout(() => window.speak(uiText[window.appState.currentLang].mapTitle, 'en-US'), 500);
         };
+
+        // ==========================================
+        // 📴 OFFLINE SERVICE WORKER REGISTRATION
+        // ==========================================
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function() {
+                navigator.serviceWorker.register('service-worker.js').then(function(registration) {
+                    console.log('ServiceWorker registration successful with scope: ', registration.scope);
+                }, function(err) {
+                    console.log('ServiceWorker registration failed: ', err);
+                });
+            });
+        }
     </script>
 </body>
 </html>
