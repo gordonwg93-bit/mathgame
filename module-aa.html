@@ -1,0 +1,30 @@
+<style>
+    .modAA-arena { display: flex; gap: 20px; align-items: center; justify-content: center; flex-wrap: wrap; margin-bottom: 20px; }
+    .modAA-group { display: flex; flex-wrap: wrap; gap: 5px; padding: 15px; border-radius: 25px; background: white; box-shadow: 0 8px 16px rgba(0,0,0,0.1); cursor: pointer; transition: transform 0.2s; min-width: 120px; min-height: 120px; justify-content: center; align-items: center; max-width: 200px; }
+    .modAA-group:active { transform: scale(0.95); }
+    .modAA-group.correct { background: #4ecdc4; animation: modAA-pop 0.5s; }
+    .modAA-group.wrong { background: #ff6b6b; animation: modAA-shake 0.5s; }
+    .modAA-item { width: 30px; height: 30px; filter: drop-shadow(0px 2px 2px rgba(0,0,0,0.15)); }
+    .modAA-vs { font-size: 2rem; font-weight: 800; color: #ff6b6b; }
+    @keyframes modAA-pop { 0% { transform: scale(1); } 50% { transform: scale(1.08); } 100% { transform: scale(1); } }
+    @keyframes modAA-shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-10px); } 75% { transform: translateX(10px); } }
+</style>
+<div class="module-content"><div class="modAA-arena" id="modAA-arena"></div></div>
+<script>
+    const modAA_imgs = ['apple.png', 'star.png', 'heart.png']; let modAA_ans = '', modAA_more = true;
+    function initModule() { 
+        modAA_more = Math.random() > 0.5; window.setInstruction(modAA_more ? "Which has more?" : "Which has less?", modAA_more ? "哪边更多？" : "哪边更少？");
+        let cA = Math.floor(Math.random() * 19) + 1, cB = Math.floor(Math.random() * 19) + 1; while(cB === cA) cB = Math.floor(Math.random() * 19) + 1;
+        modAA_ans = modAA_more ? (cA > cB ? 'L' : 'R') : (cA < cB ? 'L' : 'R'); const img = modAA_imgs[Math.floor(Math.random() * modAA_imgs.length)];
+        const arena = document.getElementById('modAA-arena'); arena.innerHTML = '';
+        const gA = document.createElement('div'); gA.className = 'modAA-group'; for(let i=0; i<cA; i++) { const im = document.createElement('img'); im.src = img; im.className = 'modAA-item'; gA.appendChild(im); } gA.onclick = () => modAA_check('L', gA); arena.appendChild(gA);
+        const vs = document.createElement('div'); vs.className = 'modAA-vs'; vs.innerText = 'VS'; arena.appendChild(vs);
+        const gB = document.createElement('div'); gB.className = 'modAA-group'; for(let i=0; i<cB; i++) { const im = document.createElement('img'); im.src = img; im.className = 'modAA-item'; gB.appendChild(im); } gB.onclick = () => modAA_check('R', gB); arena.appendChild(gB);
+    }
+    function destroyModule() { window.speechSynthesis.cancel(); }
+    function onLanguageChange() { initModule(); }
+    function modAA_check(side, el) {
+        if(side === modAA_ans) { el.classList.add('correct'); window.showCelebration("Yes!", "答对了！", "Next", "下一题", initModule); }
+        else { el.classList.add('wrong'); window.speak("Try again!", "再试一次！", getLangCode()); setTimeout(() => el.classList.remove('wrong'), 500); }
+    }
+</script>

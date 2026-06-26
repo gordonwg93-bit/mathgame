@@ -1,0 +1,33 @@
+<style>
+    .modV-eq { font-size: 3.5rem; font-weight: 800; color: #4a4a4a; margin-bottom: 40px; display: flex; align-items: center; gap: 15px; }
+    .modV-num { background: white; width: 70px; height: 70px; border-radius: 20px; display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 16px rgba(0,0,0,0.1); }
+    .modV-symbol { color: #ff6b6b; }
+    .modV-choices { display: flex; gap: 15px; flex-wrap: wrap; justify-content: center; }
+    .modV-btn { width: 70px; height: 70px; border-radius: 50%; background: white; border: none; font-size: 2rem; font-weight: 800; color: #4a4a4a; box-shadow: 0 6px 0 #d1d1d1; cursor: pointer; }
+    .modV-btn:active { transform: translateY(4px); box-shadow: 0 2px 0 #d1d1d1; }
+    .modV-btn.correct { background: #4ecdc4; color: white; }
+    .modV-btn.wrong { background: #ff6b6b; color: white; animation: modV-shake 0.5s; }
+    @keyframes modV-shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-10px); } 75% { transform: translateX(10px); } }
+</style>
+<div class="module-content"><div class="modV-eq" id="modV-eq"></div><div class="modV-choices" id="modV-choices"></div></div>
+<script>
+    let modV_a, modV_b, modV_op, modV_target;
+    function initModule() {
+        if(Math.random() > 0.5) {
+            modV_a = Math.floor(Math.random()*8)+1; modV_b = Math.floor(Math.random()*(10-modV_a))+1; modV_op = '+'; modV_target = modV_a + modV_b;
+        } else {
+            modV_a = Math.floor(Math.random()*8)+2; modV_b = Math.floor(Math.random()*(modV_a-1))+1; modV_op = '-'; modV_target = modV_a - modV_b;
+        }
+        window.setInstruction(`${modV_a} ${modV_op} ${modV_b} equals?`, `${modV_a} ${modV_op === '+' ? '加' : '减'} ${modV_b} 等于？`);
+        document.getElementById('modV-eq').innerHTML = `<div class="modV-num">${modV_a}</div><div class="modV-symbol">${modV_op}</div><div class="modV-num">${modV_b}</div><div class="modV-symbol">=</div><div class="modV-num">?</div>`;
+        const choicesDiv = document.getElementById('modV-choices'); choicesDiv.innerHTML = '';
+        let options = new Set([modV_target]); while(options.size < 4) { let r = Math.floor(Math.random() * 10); if(r !== modV_target && r >= 0) options.add(r); }
+        Array.from(options).sort(() => Math.random() - 0.5).forEach(num => { const btn = document.createElement('button'); btn.className = 'modV-btn'; btn.innerText = num; btn.onclick = () => modV_check(num, btn); choicesDiv.appendChild(btn); });
+    }
+    function destroyModule() { window.speechSynthesis.cancel(); }
+    function onLanguageChange() { initModule(); }
+    function modV_check(num, btn) {
+        if(num === modV_target) { btn.classList.add('correct'); window.showCelebration("Yes!", "答对了！", "Next", "下一题", initModule); }
+        else { btn.classList.add('wrong'); window.speak("Try again!", "再试一次！", getLangCode()); setTimeout(() => btn.classList.remove('wrong'), 500); }
+    }
+</script>

@@ -1,64 +1,41 @@
 <style>
     .modH-eq { display: flex; align-items: center; gap: 15px; margin-bottom: 40px; flex-wrap: wrap; justify-content: center; }
-    .modH-group { display: flex; gap: 10px; }
-    .modH-item { width: 70px; height: 70px; filter: drop-shadow(0px 5px 5px rgba(0,0,0,0.15)); }
-    .modH-symbol { font-size: 3rem; font-weight: 800; color: #ff6b6b; }
+    .modH-group { display: flex; gap: 8px; padding: 15px; background: rgba(255,255,255,0.6); border-radius: 20px; }
+    .modH-item { width: 50px; height: 50px; filter: drop-shadow(0px 4px 4px rgba(0,0,0,0.15)); }
+    .modH-symbol { font-size: 2.5rem; font-weight: 800; color: #ff6b6b; }
     .modH-choices { display: flex; gap: 20px; flex-wrap: wrap; justify-content: center; }
-    .modH-btn { width: 80px; height: 80px; border-radius: 50%; background: white; border: none; font-size: 2.5rem; font-weight: 800; color: #4a4a4a; box-shadow: 0 6px 0 #d1d1d1; cursor: pointer; transition: transform 0.1s; }
+    .modH-btn { width: 80px; height: 80px; border-radius: 50%; background: white; border: none; font-size: 2.5rem; font-weight: 800; color: #4a4a4a; box-shadow: 0 6px 0 #d1d1d1; cursor: pointer; }
     .modH-btn:active { transform: translateY(4px); box-shadow: 0 2px 0 #d1d1d1; }
-    .modH-btn.correct { background: #4ecdc4; color: white; box-shadow: 0 6px 0 #3ba89f; animation: modH-pop 0.5s; }
+    .modH-btn.correct { background: #4ecdc4; color: white; box-shadow: 0 6px 0 #3ba89f; }
     .modH-btn.wrong { background: #ff6b6b; color: white; box-shadow: 0 6px 0 #d9534f; animation: modH-shake 0.5s; }
-    @keyframes modH-pop { 0% { transform: scale(1); } 50% { transform: scale(1.2); } 100% { transform: scale(1); } }
     @keyframes modH-shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-10px); } 75% { transform: translateX(10px); } }
 </style>
-
-<div class="module-content">
-    <div class="modH-eq" id="modH-eq"></div>
-    <div class="modH-choices" id="modH-choices"></div>
-</div>
-
+<div class="module-content"><div class="modH-eq" id="modH-eq"></div><div class="modH-choices" id="modH-choices"></div></div>
 <script>
     let modH_a, modH_b, modH_target;
-
+    const modH_imgs = ['apple.png', 'star.png', 'heart.png'];
     function initModule() {
-        modH_a = Math.floor(Math.random() * 3) + 1;
-        modH_b = Math.floor(Math.random() * (5 - modH_a)) + 1;
-        modH_target = modH_a + modH_b;
-
+        modH_a = Math.floor(Math.random() * 4) + 1; modH_b = Math.floor(Math.random() * (5 - modH_a)) + 1; modH_target = modH_a + modH_b;
+        const imgSrc = modH_imgs[Math.floor(Math.random() * modH_imgs.length)];
         window.setInstruction("What is the total?", "一共是多少？");
-
-        const eqDiv = document.getElementById('modH-eq');
-        eqDiv.innerHTML = '';
-        const groupA = document.createElement('div'); groupA.className = 'modH-group';
-        for(let i=0; i<modH_a; i++) { const img = document.createElement('img'); img.src = 'star.png'; img.className = 'modH-item'; groupA.appendChild(img); }
-        eqDiv.appendChild(groupA);
+        const eqDiv = document.getElementById('modH-eq'); eqDiv.innerHTML = '';
+        const groupA = document.createElement('div'); groupA.className = 'modH-group'; 
+        for(let i=0; i<modH_a; i++) { const img = document.createElement('img'); img.src = imgSrc; img.className = 'modH-item'; groupA.appendChild(img); } eqDiv.appendChild(groupA);
         const plus = document.createElement('div'); plus.className = 'modH-symbol'; plus.innerText = '+'; eqDiv.appendChild(plus);
-        const groupB = document.createElement('div'); groupB.className = 'modH-group';
-        for(let i=0; i<modH_b; i++) { const img = document.createElement('img'); img.src = 'star.png'; img.className = 'modH-item'; groupB.appendChild(img); }
-        eqDiv.appendChild(groupB);
+        const groupB = document.createElement('div'); groupB.className = 'modH-group'; 
+        for(let i=0; i<modH_b; i++) { const img = document.createElement('img'); img.src = imgSrc; img.className = 'modH-item'; groupB.appendChild(img); } eqDiv.appendChild(groupB);
         const eq = document.createElement('div'); eq.className = 'modH-symbol'; eq.innerText = '='; eqDiv.appendChild(eq);
         const q = document.createElement('div'); q.className = 'modH-symbol'; q.innerText = '?'; eqDiv.appendChild(q);
-
-        const choicesDiv = document.getElementById('modH-choices');
-        choicesDiv.innerHTML = '';
-        for(let i=1; i<=5; i++) {
-            const btn = document.createElement('button');
-            btn.className = 'modH-btn'; btn.innerText = i;
-            btn.onclick = () => modH_check(i, btn);
-            choicesDiv.appendChild(btn);
+        const choicesDiv = document.getElementById('modH-choices'); choicesDiv.innerHTML = '';
+        for(let i=1; i<=5; i++) { 
+            const btn = document.createElement('button'); btn.className = 'modH-btn'; btn.innerText = i;
+            btn.onclick = () => modH_check(i, btn); choicesDiv.appendChild(btn); 
         }
     }
-
     function destroyModule() { window.speechSynthesis.cancel(); }
-
+    function onLanguageChange() { initModule(); }
     function modH_check(num, btn) {
-        if(num === modH_target) {
-            btn.classList.add('correct');
-            window.showCelebration("Yes!", "答对了！", "Next Question", "下一题", initModule);
-        } else {
-            btn.classList.add('wrong');
-            window.speak(window.appState.currentLang === 'en' ? "Try again!" : "再试一次！", getLangCode());
-            setTimeout(() => btn.classList.remove('wrong'), 500);
-        }
+        if(num === modH_target) { btn.classList.add('correct'); window.showCelebration("Yes!", "答对了！", "Next", "下一题", initModule); }
+        else { btn.classList.add('wrong'); window.speak("Try again!", "再试一次！", getLangCode()); setTimeout(() => btn.classList.remove('wrong'), 500); }
     }
 </script>

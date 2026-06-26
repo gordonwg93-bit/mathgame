@@ -1,0 +1,42 @@
+<style>
+    .modNN-graph { background: white; padding: 20px; border-radius: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); margin-bottom: 30px; width: 90%; max-width: 400px; }
+    .modNN-row { display: flex; align-items: center; margin-bottom: 15px; gap: 15px; }
+    .modNN-label { font-size: 1.2rem; font-weight: 800; color: #4a4a4a; width: 80px; }
+    .modNN-icons { display: flex; gap: 8px; flex-wrap: wrap; }
+    .modNN-icon { width: 35px; height: 35px; filter: drop-shadow(0px 3px 3px rgba(0,0,0,0.1)); }
+    .modNN-choices { display: flex; gap: 20px; flex-wrap: wrap; justify-content: center; }
+    .modNN-btn { padding: 15px 30px; border-radius: 20px; background: white; border: none; font-size: 2rem; font-weight: 800; color: #4a4a4a; box-shadow: 0 6px 0 #d1d1d1; cursor: pointer; }
+    .modNN-btn:active { transform: translateY(4px); box-shadow: 0 2px 0 #d1d1d1; }
+    .modNN-btn.correct { background: #4ecdc4; color: white; }
+    .modNN-btn.wrong { background: #ff6b6b; color: white; animation: modNN-shake 0.5s; }
+    @keyframes modNN-shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-10px); } 75% { transform: translateX(10px); } }
+</style>
+<div class="module-content"><div class="modNN-graph" id="modNN-graph"></div><div class="modNN-choices" id="modNN-choices"></div></div>
+<script>
+    const modNN_data = [{ name: 'Apples', zh: '苹果', img: 'apple.png' }, { name: 'Stars', zh: '星星', img: 'star.png' }, { name: 'Hearts', zh: '爱心', img: 'heart.png' }];
+    let modNN_counts = [], modNN_qIdx;
+    function initModule() {
+        modNN_counts = modNN_data.map(() => Math.floor(Math.random() * 5) + 1);
+        modNN_qIdx = Math.floor(Math.random() * 3);
+        const target = modNN_data[modNN_qIdx];
+        const count = modNN_counts[modNN_qIdx];
+        window.setInstruction(`How many ${target.name}?`, `${target.zh}有几个？`);
+        const graphDiv = document.getElementById('modNN-graph'); graphDiv.innerHTML = '';
+        modNN_data.forEach((item, idx) => {
+            const row = document.createElement('div'); row.className = 'modNN-row';
+            const label = document.createElement('div'); label.className = 'modNN-label'; label.innerText = item.name;
+            const icons = document.createElement('div'); icons.className = 'modNN-icons';
+            for(let i=0; i<modNN_counts[idx]; i++) { const img = document.createElement('img'); img.src = item.img; img.className = 'modNN-icon'; icons.appendChild(img); }
+            row.appendChild(label); row.appendChild(icons); graphDiv.appendChild(row);
+        });
+        const choicesDiv = document.getElementById('modNN-choices'); choicesDiv.innerHTML = '';
+        let options = new Set([count]); while(options.size < 3) { let r = Math.floor(Math.random() * 5) + 1; if(r !== count) options.add(r); }
+        Array.from(options).sort(() => Math.random() - 0.5).forEach(num => { const btn = document.createElement('button'); btn.className = 'modNN-btn'; btn.innerText = num; btn.onclick = () => modNN_check(num, btn, count); choicesDiv.appendChild(btn); });
+    }
+    function destroyModule() { window.speechSynthesis.cancel(); }
+    function onLanguageChange() { initModule(); }
+    function modNN_check(num, btn, correct) {
+        if(num === correct) { btn.classList.add('correct'); window.showCelebration("Yes!", "答对了！", "Next Graph", "下一个图表", initModule); }
+        else { btn.classList.add('wrong'); window.speak("Try again!", "再试一次！", getLangCode()); setTimeout(() => btn.classList.remove('wrong'), 500); }
+    }
+</script>

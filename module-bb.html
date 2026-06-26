@@ -1,63 +1,32 @@
 <style>
-    .modBB-visual { display: flex; gap: 30px; margin-bottom: 40px; align-items: center; flex-wrap: wrap; justify-content: center; }
-    .modBB-ten-frame { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; background: rgba(255,255,255,0.5); padding: 10px; border-radius: 15px; }
-    .modBB-loose { display: flex; gap: 5px; }
-    .modBB-star { width: 45px; height: 45px; filter: drop-shadow(0px 4px 4px rgba(0,0,0,0.1)); }
-    .modBB-choices { display: flex; gap: 20px; flex-wrap: wrap; justify-content: center; }
-    .modBB-btn { width: 80px; height: 80px; border-radius: 20px; background: white; border: none; font-size: 2.5rem; font-weight: 800; color: #4a4a4a; box-shadow: 0 6px 0 #d1d1d1; cursor: pointer; transition: transform 0.1s; }
+    .modBB-vis { display: flex; gap: 20px; margin-bottom: 40px; align-items: center; flex-wrap: wrap; justify-content: center; }
+    .modBB-ten { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; background: rgba(255,255,255,0.5); padding: 8px; border-radius: 15px; }
+    .modBB-loose { display: flex; gap: 4px; flex-wrap: wrap; max-width: 80px;}
+    .modBB-star { width: 35px; height: 35px; filter: drop-shadow(0px 3px 3px rgba(0,0,0,0.1)); }
+    .modBB-choices { display: flex; gap: 15px; flex-wrap: wrap; justify-content: center; }
+    .modBB-btn { width: 70px; height: 70px; border-radius: 20px; background: white; border: none; font-size: 2rem; font-weight: 800; color: #4a4a4a; box-shadow: 0 6px 0 #d1d1d1; cursor: pointer; }
     .modBB-btn:active { transform: translateY(4px); box-shadow: 0 2px 0 #d1d1d1; }
-    .modBB-btn.correct { background: #4ecdc4; color: white; box-shadow: 0 6px 0 #3ba89f; }
-    .modBB-btn.wrong { background: #ff6b6b; color: white; box-shadow: 0 6px 0 #d9534f; animation: modBB-shake 0.5s; }
+    .modBB-btn.correct { background: #4ecdc4; color: white; }
+    .modBB-btn.wrong { background: #ff6b6b; color: white; animation: modBB-shake 0.5s; }
     @keyframes modBB-shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-10px); } 75% { transform: translateX(10px); } }
 </style>
-
-<div class="module-content">
-    <div class="modBB-visual" id="modBB-visual"></div>
-    <div class="modBB-choices" id="modBB-choices"></div>
-</div>
-
+<div class="module-content"><div class="modBB-vis" id="modBB-vis"></div><div class="modBB-choices" id="modBB-choices"></div></div>
 <script>
-    let modBB_targetNum;
-
-    function initModule() { modBB_generate(); }
-    function destroyModule() { window.speechSynthesis.cancel(); }
-
-    function modBB_generate() {
-        modBB_targetNum = Math.floor(Math.random() * 9) + 11;
-        const looseCount = modBB_targetNum - 10;
+    let modBB_target;
+    function initModule() {
+        modBB_target = Math.floor(Math.random() * 9) + 11; const loose = modBB_target - 10;
         window.setInstruction("What number is this?", "这是数字几？");
-
-        const visualDiv = document.getElementById('modBB-visual');
-        visualDiv.innerHTML = '';
-        const tenFrame = document.createElement('div'); tenFrame.className = 'modBB-ten-frame';
-        for(let i=0; i<10; i++) { const star = document.createElement('img'); star.src = 'star.png'; star.className = 'modBB-star'; tenFrame.appendChild(star); }
-        visualDiv.appendChild(tenFrame);
-        if(looseCount > 0) {
-            const looseDiv = document.createElement('div'); looseDiv.className = 'modBB-loose';
-            for(let i=0; i<looseCount; i++) { const star = document.createElement('img'); star.src = 'star.png'; star.className = 'modBB-star'; looseDiv.appendChild(star); }
-            visualDiv.appendChild(looseDiv);
-        }
-
-        const choicesDiv = document.getElementById('modBB-choices');
-        choicesDiv.innerHTML = '';
-        let options = new Set([modBB_targetNum]);
-        while(options.size < 3) options.add(Math.floor(Math.random() * 9) + 11);
-        Array.from(options).sort(() => Math.random() - 0.5).forEach(num => {
-            const btn = document.createElement('button');
-            btn.className = 'modBB-btn'; btn.innerText = num;
-            btn.onclick = () => modBB_check(num, btn);
-            choicesDiv.appendChild(btn);
-        });
+        const vis = document.getElementById('modBB-vis'); vis.innerHTML = '';
+        const ten = document.createElement('div'); ten.className = 'modBB-ten'; for(let i=0; i<10; i++) { const s = document.createElement('img'); s.src = 'star.png'; s.className = 'modBB-star'; ten.appendChild(s); } vis.appendChild(ten);
+        if(loose > 0) { const l = document.createElement('div'); l.className = 'modBB-loose'; for(let i=0; i<loose; i++) { const s = document.createElement('img'); s.src = 'star.png'; s.className = 'modBB-star'; l.appendChild(s); } vis.appendChild(l); }
+        const choicesDiv = document.getElementById('modBB-choices'); choicesDiv.innerHTML = '';
+        let options = new Set([modBB_target]); while(options.size < 3) options.add(Math.floor(Math.random() * 9) + 11);
+        Array.from(options).sort(() => Math.random() - 0.5).forEach(num => { const btn = document.createElement('button'); btn.className = 'modBB-btn'; btn.innerText = num; btn.onclick = () => modBB_check(num, btn); choicesDiv.appendChild(btn); });
     }
-
+    function destroyModule() { window.speechSynthesis.cancel(); }
+    function onLanguageChange() { initModule(); }
     function modBB_check(num, btn) {
-        if(num === modBB_targetNum) {
-            btn.classList.add('correct');
-            window.showCelebration("Yes!", "答对了！", "Next Number", "下一个数字", initModule);
-        } else {
-            btn.classList.add('wrong');
-            window.speak(window.appState.currentLang === 'en' ? "Try again!" : "再试一次！", getLangCode());
-            setTimeout(() => btn.classList.remove('wrong'), 500);
-        }
+        if(num === modBB_target) { btn.classList.add('correct'); window.showCelebration("Yes!", "答对了！", "Next", "下一题", initModule); }
+        else { btn.classList.add('wrong'); window.speak("Try again!", "再试一次！", getLangCode()); setTimeout(() => btn.classList.remove('wrong'), 500); }
     }
 </script>

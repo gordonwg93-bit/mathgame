@@ -1,0 +1,35 @@
+<style>
+    .modU-stage { display: flex; gap: 15px; margin-bottom: 30px; align-items: center; flex-wrap: wrap; justify-content: center; }
+    .modU-group { display: flex; gap: 5px; padding: 10px; background: rgba(255,255,255,0.6); border-radius: 20px; flex-wrap: wrap; max-width: 200px; justify-content: center;}
+    .modU-item { width: 35px; height: 35px; filter: drop-shadow(0px 3px 3px rgba(0,0,0,0.15)); }
+    .modU-item.eaten { opacity: 0.2; filter: grayscale(1); }
+    .modU-choices { display: flex; gap: 15px; flex-wrap: wrap; justify-content: center; }
+    .modU-btn { width: 70px; height: 70px; border-radius: 50%; background: white; border: none; font-size: 2rem; font-weight: 800; color: #4a4a4a; box-shadow: 0 6px 0 #d1d1d1; cursor: pointer; }
+    .modU-btn:active { transform: translateY(4px); box-shadow: 0 2px 0 #d1d1d1; }
+    .modU-btn.correct { background: #4ecdc4; color: white; box-shadow: 0 6px 0 #3ba89f; }
+    .modU-btn.wrong { background: #ff6b6b; color: white; box-shadow: 0 6px 0 #d9534f; animation: modU-shake 0.5s; }
+    @keyframes modU-shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-10px); } 75% { transform: translateX(10px); } }
+</style>
+<div class="module-content"><div class="modU-stage" id="modU-stage"></div><div class="modU-choices" id="modU-choices"></div></div>
+<script>
+    let modU_a, modU_b, modU_target;
+    const modU_imgs = ['apple.png', 'star.png', 'cookie.png', 'balloon.png'];
+    function initModule() {
+        modU_a = Math.floor(Math.random() * 5) + 6; modU_b = Math.floor(Math.random() * modU_a) + 1; modU_target = modU_a - modU_b;
+        const imgSrc = modU_imgs[Math.floor(Math.random() * modU_imgs.length)];
+        window.setInstruction(`Bao has ${modU_a}. He eats ${modU_b}. How many left?`, `宝有 ${modU_a} 个。吃掉了 ${modU_b} 个。还剩几个？`);
+        const stage = document.getElementById('modU-stage'); stage.innerHTML = '';
+        const gA = document.createElement('div'); gA.className = 'modU-group'; 
+        for(let i=0; i<modU_a; i++) { const img = document.createElement('img'); img.src = imgSrc; img.className = 'modU-item'; if(i >= modU_target) img.classList.add('eaten'); gA.appendChild(img); } 
+        stage.appendChild(gA);
+        const choicesDiv = document.getElementById('modU-choices'); choicesDiv.innerHTML = '';
+        let options = new Set([modU_target]); while(options.size < 3) { let r = Math.floor(Math.random() * 10); if(r !== modU_target && r >= 0) options.add(r); }
+        Array.from(options).sort(() => Math.random() - 0.5).forEach(num => { const btn = document.createElement('button'); btn.className = 'modU-btn'; btn.innerText = num; btn.onclick = () => modU_check(num, btn); choicesDiv.appendChild(btn); });
+    }
+    function destroyModule() { window.speechSynthesis.cancel(); }
+    function onLanguageChange() { initModule(); }
+    function modU_check(num, btn) {
+        if(num === modU_target) { btn.classList.add('correct'); window.showCelebration("Yes!", "答对了！", "Next", "下一题", initModule); }
+        else { btn.classList.add('wrong'); window.speak("Try again!", "再试一次！", getLangCode()); setTimeout(() => btn.classList.remove('wrong'), 500); }
+    }
+</script>

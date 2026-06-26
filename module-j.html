@@ -1,0 +1,49 @@
+<style>
+    .modJ-top { font-size: 3rem; font-weight: 800; color: #4a4a4a; margin-bottom: 30px; background: white; padding: 20px 40px; border-radius: 20px; box-shadow: 0 8px 16px rgba(0,0,0,0.1); }
+    .modJ-choices { display: flex; gap: 20px; flex-wrap: wrap; justify-content: center; }
+    .modJ-card { background: white; padding: 20px; border-radius: 20px; box-shadow: 0 8px 16px rgba(0,0,0,0.1); cursor: pointer; transition: transform 0.2s; display: flex; align-items: center; gap: 15px; }
+    .modJ-card:active { transform: scale(0.95); }
+    .modJ-card.correct { background: #4ecdc4; animation: modJ-pop 0.5s; }
+    .modJ-card.wrong { background: #ff6b6b; animation: modJ-shake 0.5s; }
+    .modJ-num { font-size: 2rem; font-weight: 800; color: #4a4a4a; }
+    .modJ-plus { font-size: 2rem; font-weight: 800; color: #ff6b6b; }
+    @keyframes modJ-pop { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
+    @keyframes modJ-shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-10px); } 75% { transform: translateX(10px); } }
+</style>
+<div class="module-content">
+    <div class="modJ-top" id="modJ-top">5</div>
+    <div class="modJ-choices" id="modJ-choices"></div>
+</div>
+<script>
+    let modJ_target = 0, modJ_a = 0, modJ_b = 0;
+    function initModule() {
+        modJ_target = Math.floor(Math.random() * 4) + 2; // 2 to 5
+        modJ_a = Math.floor(Math.random() * (modJ_target - 1)) + 1;
+        modJ_b = modJ_target - modJ_a;
+        window.setInstruction(`Which two numbers make ${modJ_target}?`, `哪两个数组成 ${modJ_target}？`);
+        document.getElementById('modJ-top').innerText = modJ_target;
+        const choicesDiv = document.getElementById('modJ-choices'); choicesDiv.innerHTML = '';
+        
+        // Generate 3 options (1 correct, 2 wrong)
+        let options = [{a: modJ_a, b: modJ_b}];
+        while(options.length < 3) {
+            let rA = Math.floor(Math.random() * (modJ_target - 1)) + 1;
+            let rB = Math.floor(Math.random() * (modJ_target - 1)) + 1;
+            if(rA + rB !== modJ_target) options.push({a: rA, b: rB});
+        }
+        options.sort(() => Math.random() - 0.5);
+        
+        options.forEach(opt => {
+            const card = document.createElement('div'); card.className = 'modJ-card';
+            card.innerHTML = `<div class="modJ-num">${opt.a}</div><div class="modJ-plus">+</div><div class="modJ-num">${opt.b}</div>`;
+            card.onclick = () => modJ_check(opt.a, opt.b, card);
+            choicesDiv.appendChild(card);
+        });
+    }
+    function destroyModule() { window.speechSynthesis.cancel(); }
+    function onLanguageChange() { initModule(); }
+    function modJ_check(a, b, card) {
+        if(a === modJ_a && b === modJ_b) { card.classList.add('correct'); window.showCelebration("Yes!", "答对了！", "Next", "下一题", initModule); }
+        else { card.classList.add('wrong'); window.speak("Try again!", "再试一次！", getLangCode()); setTimeout(() => card.classList.remove('wrong'), 500); }
+    }
+</script>

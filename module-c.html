@@ -1,0 +1,52 @@
+<style>
+    .modC-box { background: white; padding: 30px; border-radius: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); margin-bottom: 30px; text-align: center; }
+    .modC-items { display: flex; gap: 10px; justify-content: center; margin-bottom: 20px; flex-wrap: wrap; }
+    .modC-item { width: 50px; height: 50px; filter: drop-shadow(0px 4px 4px rgba(0,0,0,0.15)); }
+    .modC-text { font-size: 2rem; font-weight: 800; color: #4a4a4a; }
+    .modC-choices { display: flex; gap: 20px; flex-wrap: wrap; justify-content: center; }
+    .modC-btn { width: 80px; height: 80px; border-radius: 50%; background: white; border: none; font-size: 2.5rem; font-weight: 800; color: #4a4a4a; box-shadow: 0 6px 0 #d1d1d1; cursor: pointer; }
+    .modC-btn:active { transform: translateY(4px); box-shadow: 0 2px 0 #d1d1d1; }
+    .modC-btn.correct { background: #4ecdc4; color: white; box-shadow: 0 6px 0 #3ba89f; }
+    .modC-btn.wrong { background: #ff6b6b; color: white; box-shadow: 0 6px 0 #d9534f; animation: modC-shake 0.5s; }
+    @keyframes modC-shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-10px); } 75% { transform: translateX(10px); } }
+</style>
+<div class="module-content">
+    <div class="modC-box">
+        <div class="modC-items" id="modC-items"></div>
+        <div class="modC-text" id="modC-text"></div>
+    </div>
+    <div class="modC-choices" id="modC-choices"></div>
+</div>
+<script>
+    let modC_num = 0, modC_isMore = true;
+    const modC_imgs = ['apple.png', 'star.png', 'balloon.png'];
+    function initModule() {
+        modC_num = Math.floor(Math.random() * 4) + 1; // 1 to 4
+        modC_isMore = Math.random() > 0.5;
+        const imgSrc = modC_imgs[Math.floor(Math.random() * modC_imgs.length)];
+        const correct = modC_isMore ? modC_num + 1 : modC_num - 1;
+        
+        const enText = modC_isMore ? `What is one more than ${modC_num}?` : `What is one less than ${modC_num}?`;
+        const zhText = modC_isMore ? `${modC_num} 多 1 是几？` : `${modC_num} 少 1 是几？`;
+        window.setInstruction(enText, zhText);
+
+        const itemsDiv = document.getElementById('modC-items'); itemsDiv.innerHTML = '';
+        for(let i=0; i<modC_num; i++) { const img = document.createElement('img'); img.src = imgSrc; img.className = 'modC-item'; itemsDiv.appendChild(img); }
+        document.getElementById('modC-text').innerText = modC_num;
+
+        const choicesDiv = document.getElementById('modC-choices'); choicesDiv.innerHTML = '';
+        let options = new Set([correct]);
+        while(options.size < 3) { let r = Math.floor(Math.random() * 5) + 1; if(r !== correct && r >= 0) options.add(r); }
+        Array.from(options).sort(() => Math.random() - 0.5).forEach(num => {
+            const btn = document.createElement('button'); btn.className = 'modC-btn'; btn.innerText = num;
+            btn.onclick = () => modC_check(num, btn, correct);
+            choicesDiv.appendChild(btn);
+        });
+    }
+    function destroyModule() { window.speechSynthesis.cancel(); }
+    function onLanguageChange() { initModule(); }
+    function modC_check(num, btn, correct) {
+        if(num === correct) { btn.classList.add('correct'); window.showCelebration("Yes!", "答对了！", "Next", "下一题", initModule); }
+        else { btn.classList.add('wrong'); window.speak("Try again!", "再试一次！", getLangCode()); setTimeout(() => btn.classList.remove('wrong'), 500); }
+    }
+</script>

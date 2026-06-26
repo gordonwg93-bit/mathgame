@@ -1,0 +1,49 @@
+<style>
+    .modDD-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 40px; }
+    .modDD-cell { width: 80px; height: 80px; background: white; border-radius: 15px; display: flex; align-items: center; justify-content: center; font-size: 2rem; font-weight: 800; color: #4a4a4a; box-shadow: 0 6px 0 #d1d1d1; }
+    .modDD-missing { background: #ff6b6b; color: white; box-shadow: 0 6px 0 #d9534f; animation: modDD-pulse 1.5s infinite; }
+    @keyframes modDD-pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+    .modDD-choices { display: flex; gap: 15px; flex-wrap: wrap; justify-content: center; }
+    .modDD-btn { width: 70px; height: 70px; border-radius: 50%; background: white; border: none; font-size: 2rem; font-weight: 800; color: #4a4a4a; box-shadow: 0 6px 0 #d1d1d1; cursor: pointer; }
+    .modDD-btn:active { transform: translateY(4px); box-shadow: 0 2px 0 #d1d1d1; }
+    .modDD-btn.correct { background: #4ecdc4; color: white; }
+    .modDD-btn.wrong { background: #ff6b6b; color: white; animation: modDD-shake 0.5s; }
+    @keyframes modDD-shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-10px); } 75% { transform: translateX(10px); } }
+</style>
+<div class="module-content"><div class="modDD-grid" id="modDD-grid"></div><div class="modDD-choices" id="modDD-choices"></div></div>
+<script>
+    let modDD_missing = 0;
+    function initModule() {
+        // Pick a random top-left corner for a 3x3 grid on a 100-chart
+        // Rows go 1-10, 11-20, etc. So top-left can be 11 to 77 (to fit 3x3)
+        let row = Math.floor(Math.random() * 8) + 1; // 1 to 8 (meaning 11-19, 21-29... 81-89)
+        let col = Math.floor(Math.random() * 8) + 1; // 1 to 8
+        let startNum = (row * 10) + col; 
+        let missingIdx = Math.floor(Math.random() * 9); // 0 to 8
+        modDD_missing = startNum + missingIdx;
+
+        window.setInstruction("What number is missing?", "缺了哪个数字？");
+        const grid = document.getElementById('modDD-grid'); grid.innerHTML = '';
+        for(let i=0; i<9; i++) {
+            const cell = document.createElement('div'); cell.className = 'modDD-cell';
+            if(i === missingIdx) { cell.innerText = '?'; cell.classList.add('modDD-missing'); }
+            else { cell.innerText = startNum + i; }
+            grid.appendChild(cell);
+        }
+
+        const choicesDiv = document.getElementById('modDD-choices'); choicesDiv.innerHTML = '';
+        let options = new Set([modDD_missing]); 
+        while(options.size < 3) { 
+            let r = modDD_missing + (Math.floor(Math.random() * 5) - 2); 
+            if(r !== modDD_missing && r > 0 && r <= 100) options.add(r); 
+            else options.add(Math.floor(Math.random() * 100) + 1);
+        }
+        Array.from(options).sort(() => Math.random() - 0.5).forEach(num => { const btn = document.createElement('button'); btn.className = 'modDD-btn'; btn.innerText = num; btn.onclick = () => modDD_check(num, btn); choicesDiv.appendChild(btn); });
+    }
+    function destroyModule() { window.speechSynthesis.cancel(); }
+    function onLanguageChange() { initModule(); }
+    function modDD_check(num, btn) {
+        if(num === modDD_missing) { btn.classList.add('correct'); window.showCelebration("Yes!", "答对了！", "Next", "下一题", initModule); }
+        else { btn.classList.add('wrong'); window.speak("Try again!", "再试一次！", getLangCode()); setTimeout(() => btn.classList.remove('wrong'), 500); }
+    }
+</script>

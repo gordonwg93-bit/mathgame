@@ -1,0 +1,29 @@
+<style>
+    .modKK-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; max-width: 350px; }
+    .modKK-card { width: 150px; height: 150px; background: white; border-radius: 25px; box-shadow: 0 8px 16px rgba(0,0,0,0.1); display: flex; align-items: center; justify-content: center; cursor: pointer; transition: transform 0.2s; }
+    .modKK-card:active { transform: scale(0.92); }
+    .modKK-card.correct { background: #4ecdc4; animation: modKK-pop 0.6s; }
+    .modKK-card.wrong { background: #ff6b6b; animation: modKK-shake 0.5s; }
+    .modKK-img { width: 110px; height: 110px; object-fit: contain; filter: drop-shadow(0px 6px 6px rgba(0,0,0,0.15)); }
+    @keyframes modKK-pop { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
+    @keyframes modKK-shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-10px); } 75% { transform: translateX(10px); } }
+</style>
+<div class="module-content"><div class="modKK-grid" id="modKK-grid"></div></div>
+<script>
+    const modKK_objs = [{ en: 'Circle', zh: '圆形', img: 'real-clock.png' }, { en: 'Triangle', zh: '三角形', img: 'real-sandwich.png' }];
+    let modKK_target;
+    function initModule() {
+        modKK_target = modKK_objs[Math.floor(Math.random() * modKK_objs.length)];
+        const name = window.appState.currentLang === 'en' ? modKK_target.en : modKK_target.zh;
+        window.setInstruction(`Tap the ${name}!`, `点击${name}！`);
+        const grid = document.getElementById('modKK-grid'); grid.innerHTML = '';
+        const options = [...modKK_objs].sort(() => Math.random() - 0.5);
+        options.forEach(obj => { const card = document.createElement('div'); card.className = 'modKK-card'; const img = document.createElement('img'); img.src = obj.img; img.className = 'modKK-img'; card.appendChild(img); card.onclick = () => modKK_check(obj, card); grid.appendChild(card); });
+    }
+    function destroyModule() { window.speechSynthesis.cancel(); }
+    function onLanguageChange() { initModule(); }
+    function modKK_check(obj, card) {
+        if(obj.en === modKK_target.en) { card.classList.add('correct'); window.showCelebration("Yes!", "答对了！", "Next", "下一题", initModule); }
+        else { card.classList.add('wrong'); window.speak("Try again!", "再试一次！", getLangCode()); setTimeout(() => card.classList.remove('wrong'), 500); }
+    }
+</script>

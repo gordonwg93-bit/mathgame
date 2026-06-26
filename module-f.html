@@ -1,0 +1,49 @@
+<style>
+    .modF-sequence { display: flex; gap: 15px; margin-bottom: 40px; align-items: center; flex-wrap: wrap; justify-content: center; }
+    .modF-num { width: 70px; height: 70px; background: white; border-radius: 20px; display: flex; align-items: center; justify-content: center; font-size: 2.5rem; font-weight: 800; color: #4a4a4a; box-shadow: 0 6px 0 #d1d1d1; }
+    .modF-missing { background: #ff6b6b; color: white; box-shadow: 0 6px 0 #d9534f; animation: modF-pulse 1.5s infinite; }
+    @keyframes modF-pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+    .modF-choices { display: flex; gap: 20px; flex-wrap: wrap; justify-content: center; }
+    .modF-btn { width: 80px; height: 80px; border-radius: 50%; background: white; border: none; font-size: 2.5rem; font-weight: 800; color: #4a4a4a; box-shadow: 0 6px 0 #d1d1d1; cursor: pointer; }
+    .modF-btn:active { transform: translateY(4px); box-shadow: 0 2px 0 #d1d1d1; }
+    .modF-btn.correct { background: #4ecdc4; color: white; box-shadow: 0 6px 0 #3ba89f; }
+    .modF-btn.wrong { background: #ff6b6b; color: white; box-shadow: 0 6px 0 #d9534f; animation: modF-shake 0.5s; }
+    @keyframes modF-shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-10px); } 75% { transform: translateX(10px); } }
+</style>
+<div class="module-content">
+    <div class="modF-sequence" id="modF-sequence"></div>
+    <div class="modF-choices" id="modF-choices"></div>
+</div>
+<script>
+    let modF_missing = 0;
+    function initModule() {
+        const start = Math.floor(Math.random() * 7) + 1; // 1 to 7
+        const missingIdx = Math.floor(Math.random() * 3) + 1; // 1, 2, or 3
+        modF_missing = start + missingIdx;
+        
+        window.setInstruction("What number is missing?", "缺了哪个数字？");
+
+        const seqDiv = document.getElementById('modF-sequence'); seqDiv.innerHTML = '';
+        for(let i=0; i<4; i++) {
+            const numDiv = document.createElement('div'); numDiv.className = 'modF-num';
+            if(i === missingIdx) { numDiv.innerText = '?'; numDiv.classList.add('modF-missing'); }
+            else { numDiv.innerText = start + i; }
+            seqDiv.appendChild(numDiv);
+        }
+
+        const choicesDiv = document.getElementById('modF-choices'); choicesDiv.innerHTML = '';
+        let options = new Set([modF_missing]);
+        while(options.size < 3) { let r = Math.floor(Math.random() * 10) + 1; if(r !== modF_missing) options.add(r); }
+        Array.from(options).sort(() => Math.random() - 0.5).forEach(num => {
+            const btn = document.createElement('button'); btn.className = 'modF-btn'; btn.innerText = num;
+            btn.onclick = () => modF_check(num, btn);
+            choicesDiv.appendChild(btn);
+        });
+    }
+    function destroyModule() { window.speechSynthesis.cancel(); }
+    function onLanguageChange() { initModule(); }
+    function modF_check(num, btn) {
+        if(num === modF_missing) { btn.classList.add('correct'); window.showCelebration("Yes!", "答对了！", "Next", "下一题", initModule); }
+        else { btn.classList.add('wrong'); window.speak("Try again!", "再试一次！", getLangCode()); setTimeout(() => btn.classList.remove('wrong'), 500); }
+    }
+</script>

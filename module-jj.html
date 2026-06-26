@@ -1,52 +1,28 @@
 <style>
-    .modJJ-grid { display: flex; gap: 40px; flex-wrap: wrap; justify-content: center; }
-    .modJJ-shape { width: 140px; height: 140px; cursor: pointer; transition: transform 0.2s; filter: drop-shadow(0px 10px 10px rgba(0,0,0,0.15)); }
+    .modJJ-grid { display: flex; gap: 30px; flex-wrap: wrap; justify-content: center; }
+    .modJJ-shape { width: 120px; height: 120px; cursor: pointer; transition: transform 0.2s; filter: drop-shadow(0px 8px 8px rgba(0,0,0,0.15)); }
     .modJJ-shape:active { transform: scale(0.9); }
-    .modJJ-shape.correct { animation: modJJ-flyaway 0.8s forwards; }
+    .modJJ-shape.correct { animation: modJJ-fly 0.8s forwards; }
     .modJJ-shape.wrong { animation: modJJ-shake 0.5s; }
-    @keyframes modJJ-flyaway { 0% { transform: scale(1) rotate(0); opacity: 1; } 100% { transform: scale(0) rotate(360deg) translateY(-200px); opacity: 0; } }
-    @keyframes modJJ-shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-15px); } 75% { transform: translateX(15px); } }
+    @keyframes modJJ-fly { 0% { transform: scale(1); opacity: 1; } 100% { transform: scale(0) translateY(-150px); opacity: 0; } }
+    @keyframes modJJ-shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-10px); } 75% { transform: translateX(10px); } }
 </style>
-
-<div class="module-content">
-    <div class="modJJ-grid" id="modJJ-grid"></div>
-</div>
-
+<div class="module-content"><div class="modJJ-grid" id="modJJ-grid"></div></div>
 <script>
-    const modJJ_shapes = [
-        { en: 'Cube', zh: '正方体', img: 'shape-cube.png' },
-        { en: 'Sphere', zh: '球体', img: 'shape-sphere.png' },
-        { en: 'Cylinder', zh: '圆柱', img: 'shape-cylinder.png' }
-    ];
+    const modJJ_shapes = [{ en: 'Cube', zh: '正方体', img: 'shape-cube.png' }, { en: 'Sphere', zh: '球体', img: 'shape-sphere.png' }, { en: 'Cylinder', zh: '圆柱', img: 'shape-cylinder.png' }];
     let modJJ_target;
-
-    function initModule() { modJJ_generate(); }
-    function destroyModule() { window.speechSynthesis.cancel(); }
-
-    function modJJ_generate() {
+    function initModule() {
         modJJ_target = modJJ_shapes[Math.floor(Math.random() * modJJ_shapes.length)];
-        const shapeName = window.appState.currentLang === 'en' ? modJJ_target.en : modJJ_target.zh;
-        window.setInstruction(`Tap the ${shapeName}!`, `点击${shapeName}！`);
-
+        const name = window.appState.currentLang === 'en' ? modJJ_target.en : modJJ_target.zh;
+        window.setInstruction(`Tap the ${name}!`, `点击${name}！`);
         const options = [...modJJ_shapes].sort(() => Math.random() - 0.5);
-        const grid = document.getElementById('modJJ-grid');
-        grid.innerHTML = '';
-        options.forEach(shape => {
-            const img = document.createElement('img');
-            img.src = shape.img; img.className = 'modJJ-shape';
-            img.onclick = () => modJJ_check(shape, img);
-            grid.appendChild(img);
-        });
+        const grid = document.getElementById('modJJ-grid'); grid.innerHTML = '';
+        options.forEach(shape => { const img = document.createElement('img'); img.src = shape.img; img.className = 'modJJ-shape'; img.onclick = () => modJJ_check(shape, img); grid.appendChild(img); });
     }
-
+    function destroyModule() { window.speechSynthesis.cancel(); }
+    function onLanguageChange() { initModule(); }
     function modJJ_check(shape, imgEl) {
-        if(shape.en === modJJ_target.en) {
-            imgEl.classList.add('correct');
-            window.showCelebration("Yes!", "答对了！", "Next Shape", "下一个形状", initModule);
-        } else {
-            imgEl.classList.add('wrong');
-            window.speak(window.appState.currentLang === 'en' ? "Try again!" : "再试一次！", getLangCode());
-            setTimeout(() => imgEl.classList.remove('wrong'), 500);
-        }
+        if(shape.en === modJJ_target.en) { imgEl.classList.add('correct'); window.showCelebration("Yes!", "答对了！", "Next", "下一题", initModule); }
+        else { imgEl.classList.add('wrong'); window.speak("Try again!", "再试一次！", getLangCode()); setTimeout(() => imgEl.classList.remove('wrong'), 500); }
     }
 </script>

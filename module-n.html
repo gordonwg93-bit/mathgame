@@ -1,0 +1,37 @@
+<style>
+    .modN-top { font-size: 3rem; font-weight: 800; color: #4a4a4a; margin-bottom: 30px; background: white; padding: 20px 40px; border-radius: 20px; box-shadow: 0 8px 16px rgba(0,0,0,0.1); }
+    .modN-choices { display: flex; gap: 20px; flex-wrap: wrap; justify-content: center; }
+    .modN-card { background: white; padding: 20px; border-radius: 20px; box-shadow: 0 8px 16px rgba(0,0,0,0.1); cursor: pointer; transition: transform 0.2s; display: flex; align-items: center; gap: 15px; }
+    .modN-card:active { transform: scale(0.95); }
+    .modN-card.correct { background: #4ecdc4; animation: modN-pop 0.5s; }
+    .modN-card.wrong { background: #ff6b6b; animation: modN-shake 0.5s; }
+    .modN-num { font-size: 2rem; font-weight: 800; color: #4a4a4a; }
+    .modN-plus { font-size: 2rem; font-weight: 800; color: #ff6b6b; }
+    @keyframes modN-pop { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
+    @keyframes modN-shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-10px); } 75% { transform: translateX(10px); } }
+</style>
+<div class="module-content"><div class="modN-top" id="modN-top">10</div><div class="modN-choices" id="modN-choices"></div></div>
+<script>
+    let modN_target = 0, modN_a = 0, modN_b = 0;
+    function initModule() {
+        modN_target = Math.floor(Math.random() * 9) + 2; // 2 to 10
+        modN_a = Math.floor(Math.random() * (modN_target - 1)) + 1; modN_b = modN_target - modN_a;
+        window.setInstruction(`Which two numbers make ${modN_target}?`, `哪两个数组成 ${modN_target}？`);
+        document.getElementById('modN-top').innerText = modN_target;
+        const choicesDiv = document.getElementById('modN-choices'); choicesDiv.innerHTML = '';
+        let options = [{a: modN_a, b: modN_b}];
+        while(options.length < 3) { let rA = Math.floor(Math.random() * (modN_target - 1)) + 1; let rB = Math.floor(Math.random() * (modN_target - 1)) + 1; if(rA + rB !== modN_target) options.push({a: rA, b: rB}); }
+        options.sort(() => Math.random() - 0.5);
+        options.forEach(opt => {
+            const card = document.createElement('div'); card.className = 'modN-card';
+            card.innerHTML = `<div class="modN-num">${opt.a}</div><div class="modN-plus">+</div><div class="modN-num">${opt.b}</div>`;
+            card.onclick = () => modN_check(opt.a, opt.b, card); choicesDiv.appendChild(card);
+        });
+    }
+    function destroyModule() { window.speechSynthesis.cancel(); }
+    function onLanguageChange() { initModule(); }
+    function modN_check(a, b, card) {
+        if(a === modN_a && b === modN_b) { card.classList.add('correct'); window.showCelebration("Yes!", "答对了！", "Next", "下一题", initModule); }
+        else { card.classList.add('wrong'); window.speak("Try again!", "再试一次！", getLangCode()); setTimeout(() => card.classList.remove('wrong'), 500); }
+    }
+</script>

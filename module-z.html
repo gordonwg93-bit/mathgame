@@ -1,0 +1,31 @@
+<style>
+    .modZ-seq { display: flex; gap: 15px; margin-bottom: 40px; align-items: center; flex-wrap: wrap; justify-content: center; }
+    .modZ-num { width: 70px; height: 70px; background: white; border-radius: 20px; display: flex; align-items: center; justify-content: center; font-size: 2.5rem; font-weight: 800; color: #4a4a4a; box-shadow: 0 6px 0 #d1d1d1; }
+    .modZ-missing { background: #ff6b6b; color: white; box-shadow: 0 6px 0 #d9534f; animation: modZ-pulse 1.5s infinite; }
+    @keyframes modZ-pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+    .modZ-choices { display: flex; gap: 20px; flex-wrap: wrap; justify-content: center; }
+    .modZ-btn { width: 80px; height: 80px; border-radius: 50%; background: white; border: none; font-size: 2.5rem; font-weight: 800; color: #4a4a4a; box-shadow: 0 6px 0 #d1d1d1; cursor: pointer; }
+    .modZ-btn:active { transform: translateY(4px); box-shadow: 0 2px 0 #d1d1d1; }
+    .modZ-btn.correct { background: #4ecdc4; color: white; }
+    .modZ-btn.wrong { background: #ff6b6b; color: white; animation: modZ-shake 0.5s; }
+    @keyframes modZ-shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-10px); } 75% { transform: translateX(10px); } }
+</style>
+<div class="module-content"><div class="modZ-seq" id="modZ-seq"></div><div class="modZ-choices" id="modZ-choices"></div></div>
+<script>
+    let modZ_missing = 0;
+    function initModule() {
+        const start = Math.floor(Math.random() * 16) + 1; const missingIdx = Math.floor(Math.random() * 3) + 1; modZ_missing = start + missingIdx;
+        window.setInstruction("What number is missing?", "缺了哪个数字？");
+        const seqDiv = document.getElementById('modZ-seq'); seqDiv.innerHTML = '';
+        for(let i=0; i<4; i++) { const numDiv = document.createElement('div'); numDiv.className = 'modZ-num'; if(i === missingIdx) { numDiv.innerText = '?'; numDiv.classList.add('modZ-missing'); } else { numDiv.innerText = start + i; } seqDiv.appendChild(numDiv); }
+        const choicesDiv = document.getElementById('modZ-choices'); choicesDiv.innerHTML = '';
+        let options = new Set([modZ_missing]); while(options.size < 3) { let r = Math.floor(Math.random() * 20) + 1; if(r !== modZ_missing) options.add(r); }
+        Array.from(options).sort(() => Math.random() - 0.5).forEach(num => { const btn = document.createElement('button'); btn.className = 'modZ-btn'; btn.innerText = num; btn.onclick = () => modZ_check(num, btn); choicesDiv.appendChild(btn); });
+    }
+    function destroyModule() { window.speechSynthesis.cancel(); }
+    function onLanguageChange() { initModule(); }
+    function modZ_check(num, btn) {
+        if(num === modZ_missing) { btn.classList.add('correct'); window.showCelebration("Yes!", "答对了！", "Next", "下一题", initModule); }
+        else { btn.classList.add('wrong'); window.speak("Try again!", "再试一次！", getLangCode()); setTimeout(() => btn.classList.remove('wrong'), 500); }
+    }
+</script>

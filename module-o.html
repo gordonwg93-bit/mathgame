@@ -1,0 +1,35 @@
+<style>
+    .modO-stage { display: flex; gap: 15px; margin-bottom: 30px; align-items: center; flex-wrap: wrap; justify-content: center; }
+    .modO-group { display: flex; gap: 5px; padding: 10px; background: rgba(255,255,255,0.6); border-radius: 20px; flex-wrap: wrap; max-width: 150px; justify-content: center;}
+    .modO-item { width: 40px; height: 40px; filter: drop-shadow(0px 3px 3px rgba(0,0,0,0.15)); }
+    .modO-symbol { font-size: 2rem; font-weight: 800; color: #ff6b6b; }
+    .modO-choices { display: flex; gap: 15px; flex-wrap: wrap; justify-content: center; }
+    .modO-btn { width: 70px; height: 70px; border-radius: 50%; background: white; border: none; font-size: 2rem; font-weight: 800; color: #4a4a4a; box-shadow: 0 6px 0 #d1d1d1; cursor: pointer; }
+    .modO-btn:active { transform: translateY(4px); box-shadow: 0 2px 0 #d1d1d1; }
+    .modO-btn.correct { background: #4ecdc4; color: white; box-shadow: 0 6px 0 #3ba89f; }
+    .modO-btn.wrong { background: #ff6b6b; color: white; box-shadow: 0 6px 0 #d9534f; animation: modO-shake 0.5s; }
+    @keyframes modO-shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-10px); } 75% { transform: translateX(10px); } }
+</style>
+<div class="module-content"><div class="modO-stage" id="modO-stage"></div><div class="modO-choices" id="modO-choices"></div></div>
+<script>
+    let modO_a, modO_b, modO_target;
+    const modO_imgs = ['apple.png', 'star.png', 'cookie.png', 'balloon.png'];
+    function initModule() {
+        modO_a = Math.floor(Math.random() * 8) + 1; modO_b = Math.floor(Math.random() * (10 - modO_a)) + 1; modO_target = modO_a + modO_b;
+        const imgSrc = modO_imgs[Math.floor(Math.random() * modO_imgs.length)];
+        window.setInstruction(`Bao has ${modO_a}. He gets ${modO_b} more. How many?`, `宝有 ${modO_a} 个。又得到 ${modO_b} 个。一共几个？`);
+        const stage = document.getElementById('modO-stage'); stage.innerHTML = '';
+        const gA = document.createElement('div'); gA.className = 'modO-group'; for(let i=0; i<modO_a; i++) { const img = document.createElement('img'); img.src = imgSrc; img.className = 'modO-item'; gA.appendChild(img); } stage.appendChild(gA);
+        const plus = document.createElement('div'); plus.className = 'modO-symbol'; plus.innerText = '+'; stage.appendChild(plus);
+        const gB = document.createElement('div'); gB.className = 'modO-group'; for(let i=0; i<modO_b; i++) { const img = document.createElement('img'); img.src = imgSrc; img.className = 'modO-item'; gB.appendChild(img); } stage.appendChild(gB);
+        const choicesDiv = document.getElementById('modO-choices'); choicesDiv.innerHTML = '';
+        let options = new Set([modO_target]); while(options.size < 3) options.add(Math.floor(Math.random() * 10) + 1);
+        Array.from(options).sort(() => Math.random() - 0.5).forEach(num => { const btn = document.createElement('button'); btn.className = 'modO-btn'; btn.innerText = num; btn.onclick = () => modO_check(num, btn); choicesDiv.appendChild(btn); });
+    }
+    function destroyModule() { window.speechSynthesis.cancel(); }
+    function onLanguageChange() { initModule(); }
+    function modO_check(num, btn) {
+        if(num === modO_target) { btn.classList.add('correct'); window.showCelebration("Yes!", "答对了！", "Next", "下一题", initModule); }
+        else { btn.classList.add('wrong'); window.speak("Try again!", "再试一次！", getLangCode()); setTimeout(() => btn.classList.remove('wrong'), 500); }
+    }
+</script>

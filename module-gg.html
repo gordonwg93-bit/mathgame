@@ -1,53 +1,29 @@
 <style>
-    .modGG-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 25px; max-width: 380px; }
-    .modGG-card { width: 150px; height: 150px; background: white; border-radius: 30px; box-shadow: 0 8px 16px rgba(0,0,0,0.1); display: flex; align-items: center; justify-content: center; cursor: pointer; transition: transform 0.2s; }
+    .modGG-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; max-width: 350px; }
+    .modGG-card { width: 140px; height: 140px; background: white; border-radius: 25px; box-shadow: 0 8px 16px rgba(0,0,0,0.1); display: flex; align-items: center; justify-content: center; cursor: pointer; transition: transform 0.2s; }
     .modGG-card:active { transform: scale(0.92); }
     .modGG-card.correct { background: #4ecdc4; animation: modGG-pop 0.6s; }
     .modGG-card.wrong { background: #ff6b6b; animation: modGG-shake 0.5s; }
-    .modGG-img { width: 100px; height: 100px; filter: drop-shadow(0px 6px 6px rgba(0,0,0,0.15)); }
+    .modGG-img { width: 90px; height: 90px; filter: drop-shadow(0px 6px 6px rgba(0,0,0,0.15)); }
     @keyframes modGG-pop { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
     @keyframes modGG-shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-10px); } 75% { transform: translateX(10px); } }
 </style>
-
-<div class="module-content">
-    <div class="modGG-grid" id="modGG-grid"></div>
-</div>
-
+<div class="module-content"><div class="modGG-grid" id="modGG-grid"></div></div>
 <script>
-    const modGG_items = [
-        { name: 'apple', img: 'apple.png' }, { name: 'star', img: 'star.png' },
-        { name: 'banana', img: 'banana.png' }, { name: 'orange', img: 'orange.png' },
-        { name: 'watermelon', img: 'watermelon.png' }, { name: 'grape', img: 'grape.png' }
-    ];
-    let modGG_oddOne;
-
-    function initModule() { modGG_generate(); }
-    function destroyModule() { window.speechSynthesis.cancel(); }
-
-    function modGG_generate() {
+    const modGG_items = [{ name: 'apple', img: 'apple.png' }, { name: 'star', img: 'star.png' }, { name: 'heart', img: 'heart.png' }, { name: 'cookie', img: 'cookie.png' }];
+    let modGG_odd;
+    function initModule() {
         window.setInstruction("Find the different one!", "找出不一样！");
         const shuffled = [...modGG_items].sort(() => Math.random() - 0.5);
-        const common = shuffled[0]; modGG_oddOne = shuffled[1];
-        let cards = [common, common, common, modGG_oddOne].sort(() => Math.random() - 0.5);
-
-        const grid = document.getElementById('modGG-grid');
-        grid.innerHTML = '';
-        cards.forEach(item => {
-            const card = document.createElement('div'); card.className = 'modGG-card';
-            const img = document.createElement('img'); img.src = item.img; img.className = 'modGG-img'; card.appendChild(img);
-            card.onclick = () => modGG_check(item, card);
-            grid.appendChild(card);
-        });
+        const common = shuffled[0]; modGG_odd = shuffled[1];
+        let cards = [common, common, common, modGG_odd].sort(() => Math.random() - 0.5);
+        const grid = document.getElementById('modGG-grid'); grid.innerHTML = '';
+        cards.forEach(item => { const card = document.createElement('div'); card.className = 'modGG-card'; const img = document.createElement('img'); img.src = item.img; img.className = 'modGG-img'; card.appendChild(img); card.onclick = () => modGG_check(item, card); grid.appendChild(card); });
     }
-
+    function destroyModule() { window.speechSynthesis.cancel(); }
+    function onLanguageChange() { initModule(); }
     function modGG_check(item, card) {
-        if(item.name === modGG_oddOne.name) {
-            card.classList.add('correct');
-            window.showCelebration("Yes!", "答对了！", "Next Round", "下一轮", initModule);
-        } else {
-            card.classList.add('wrong');
-            window.speak(window.appState.currentLang === 'en' ? "Try again!" : "再试一次！", getLangCode());
-            setTimeout(() => card.classList.remove('wrong'), 500);
-        }
+        if(item.name === modGG_odd.name) { card.classList.add('correct'); window.showCelebration("Yes!", "答对了！", "Next", "下一题", initModule); }
+        else { card.classList.add('wrong'); window.speak("Try again!", "再试一次！", getLangCode()); setTimeout(() => card.classList.remove('wrong'), 500); }
     }
 </script>

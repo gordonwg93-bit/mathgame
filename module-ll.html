@@ -1,0 +1,35 @@
+<style>
+    .modLL-groups { display: flex; gap: 30px; margin-bottom: 40px; justify-content: center; flex-wrap: wrap; }
+    .modLL-group { background: white; padding: 15px; border-radius: 20px; box-shadow: 0 8px 16px rgba(0,0,0,0.1); cursor: pointer; transition: transform 0.2s; display: flex; flex-wrap: wrap; gap: 5px; justify-content: center; max-width: 120px; }
+    .modLL-group:active { transform: scale(0.95); }
+    .modLL-group.correct { background: #4ecdc4; animation: modLL-pop 0.5s; }
+    .modLL-group.wrong { background: #ff6b6b; animation: modLL-shake 0.5s; }
+    .modLL-item { width: 30px; height: 30px; filter: drop-shadow(0px 2px 2px rgba(0,0,0,0.15)); }
+    @keyframes modLL-pop { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
+    @keyframes modLL-shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-10px); } 75% { transform: translateX(10px); } }
+</style>
+<div class="module-content"><div class="modLL-groups" id="modLL-groups"></div></div>
+<script>
+    const modLL_imgs = ['apple.png', 'star.png', 'heart.png'];
+    let modLL_targetCount;
+    function initModule() {
+        modLL_targetCount = Math.floor(Math.random() * 4) + 2; // 2 to 5
+        const imgSrc = modLL_imgs[Math.floor(Math.random() * modLL_imgs.length)];
+        window.setInstruction(`Which group has ${modLL_targetCount}?`, `哪一组有 ${modLL_targetCount} 个？`);
+        const div = document.getElementById('modLL-groups'); div.innerHTML = '';
+        let counts = [modLL_targetCount];
+        while(counts.length < 3) { let r = Math.floor(Math.random() * 4) + 2; if(!counts.includes(r)) counts.push(r); }
+        counts.sort(() => Math.random() - 0.5).forEach(count => {
+            const group = document.createElement('div'); group.className = 'modLL-group';
+            for(let i=0; i<count; i++) { const img = document.createElement('img'); img.src = imgSrc; img.className = 'modLL-item'; group.appendChild(img); }
+            group.onclick = () => modLL_check(count, group);
+            div.appendChild(group);
+        });
+    }
+    function destroyModule() { window.speechSynthesis.cancel(); }
+    function onLanguageChange() { initModule(); }
+    function modLL_check(count, group) {
+        if(count === modLL_targetCount) { group.classList.add('correct'); window.showCelebration("Yes!", "答对了！", "Next", "下一题", initModule); }
+        else { group.classList.add('wrong'); window.speak("Try again!", "再试一次！", getLangCode()); setTimeout(() => group.classList.remove('wrong'), 500); }
+    }
+</script>

@@ -1,0 +1,29 @@
+<style>
+    .modII-shapes { display: flex; gap: 30px; margin-bottom: 40px; justify-content: center; flex-wrap: wrap; }
+    .modII-shape { width: 100px; height: 100px; cursor: pointer; transition: transform 0.2s; filter: drop-shadow(0px 8px 8px rgba(0,0,0,0.15)); }
+    .modII-shape:active { transform: scale(0.9); }
+    .modII-shape.correct { animation: modII-pop 0.5s; }
+    .modII-shape.wrong { animation: modII-shake 0.5s; }
+    @keyframes modII-pop { 0% { transform: scale(1); } 50% { transform: scale(1.2); } 100% { transform: scale(1); } }
+    @keyframes modII-shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-10px); } 75% { transform: translateX(10px); } }
+</style>
+<div class="module-content"><div class="modII-shapes" id="modII-shapes"></div></div>
+<script>
+    const modII_shapes = [{ sides: 3, name: 'Triangle', zh: '三角形', img: 'shape-triangle.png' }, { sides: 4, name: 'Square', zh: '正方形', img: 'shape-square.png' }];
+    let modII_targetSides;
+    function initModule() {
+        modII_targetSides = Math.random() > 0.5 ? 3 : 4;
+        const targetShape = modII_shapes.find(s => s.sides === modII_targetSides);
+        const name = window.appState.currentLang === 'en' ? targetShape.name : targetShape.zh;
+        window.setInstruction(`Tap the shape with ${modII_targetSides} sides!`, `点击有 ${modII_targetSides} 条边的${name}！`);
+        const options = [...modII_shapes].sort(() => Math.random() - 0.5);
+        const div = document.getElementById('modII-shapes'); div.innerHTML = '';
+        options.forEach(shape => { const img = document.createElement('img'); img.src = shape.img; img.className = 'modII-shape'; img.onclick = () => modII_check(shape, img); div.appendChild(img); });
+    }
+    function destroyModule() { window.speechSynthesis.cancel(); }
+    function onLanguageChange() { initModule(); }
+    function modII_check(shape, imgEl) {
+        if(shape.sides === modII_targetSides) { imgEl.classList.add('correct'); window.showCelebration("Yes!", "答对了！", "Next", "下一题", initModule); }
+        else { imgEl.classList.add('wrong'); window.speak("Try again!", "再试一次！", getLangCode()); setTimeout(() => imgEl.classList.remove('wrong'), 500); }
+    }
+</script>

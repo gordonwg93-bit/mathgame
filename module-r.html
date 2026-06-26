@@ -1,0 +1,36 @@
+<style>
+    .modR-stage { display: flex; gap: 15px; margin-bottom: 30px; align-items: center; flex-wrap: wrap; justify-content: center; }
+    .modR-group { display: flex; gap: 5px; padding: 10px; background: rgba(255,255,255,0.6); border-radius: 20px; flex-wrap: wrap; max-width: 150px; justify-content: center;}
+    .modR-item { width: 40px; height: 40px; filter: drop-shadow(0px 3px 3px rgba(0,0,0,0.15)); }
+    .modR-item.eaten { opacity: 0.2; filter: grayscale(1); }
+    .modR-symbol { font-size: 2rem; font-weight: 800; color: #ff6b6b; }
+    .modR-choices { display: flex; gap: 15px; flex-wrap: wrap; justify-content: center; }
+    .modR-btn { width: 70px; height: 70px; border-radius: 50%; background: white; border: none; font-size: 2rem; font-weight: 800; color: #4a4a4a; box-shadow: 0 6px 0 #d1d1d1; cursor: pointer; }
+    .modR-btn:active { transform: translateY(4px); box-shadow: 0 2px 0 #d1d1d1; }
+    .modR-btn.correct { background: #4ecdc4; color: white; box-shadow: 0 6px 0 #3ba89f; }
+    .modR-btn.wrong { background: #ff6b6b; color: white; box-shadow: 0 6px 0 #d9534f; animation: modR-shake 0.5s; }
+    @keyframes modR-shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-10px); } 75% { transform: translateX(10px); } }
+</style>
+<div class="module-content"><div class="modR-stage" id="modR-stage"></div><div class="modR-choices" id="modR-choices"></div></div>
+<script>
+    let modR_a, modR_b, modR_target;
+    const modR_imgs = ['apple.png', 'star.png', 'cookie.png'];
+    function initModule() {
+        modR_a = Math.floor(Math.random() * 3) + 3; modR_b = Math.floor(Math.random() * modR_a) + 1; modR_target = modR_a - modR_b;
+        const imgSrc = modR_imgs[Math.floor(Math.random() * modR_imgs.length)];
+        window.setInstruction(`Bao has ${modR_a}. He eats ${modR_b}. How many left?`, `宝有 ${modR_a} 个。吃掉了 ${modR_b} 个。还剩几个？`);
+        const stage = document.getElementById('modR-stage'); stage.innerHTML = '';
+        const gA = document.createElement('div'); gA.className = 'modR-group'; 
+        for(let i=0; i<modR_a; i++) { const img = document.createElement('img'); img.src = imgSrc; img.className = 'modR-item'; if(i >= modR_target) img.classList.add('eaten'); gA.appendChild(img); } 
+        stage.appendChild(gA);
+        const choicesDiv = document.getElementById('modR-choices'); choicesDiv.innerHTML = '';
+        let options = new Set([modR_target]); while(options.size < 3) { let r = Math.floor(Math.random() * 5); if(r !== modR_target) options.add(r); }
+        Array.from(options).sort(() => Math.random() - 0.5).forEach(num => { const btn = document.createElement('button'); btn.className = 'modR-btn'; btn.innerText = num; btn.onclick = () => modR_check(num, btn); choicesDiv.appendChild(btn); });
+    }
+    function destroyModule() { window.speechSynthesis.cancel(); }
+    function onLanguageChange() { initModule(); }
+    function modR_check(num, btn) {
+        if(num === modR_target) { btn.classList.add('correct'); window.showCelebration("Yes!", "答对了！", "Next", "下一题", initModule); }
+        else { btn.classList.add('wrong'); window.speak("Try again!", "再试一次！", getLangCode()); setTimeout(() => btn.classList.remove('wrong'), 500); }
+    }
+</script>

@@ -1,0 +1,29 @@
+<style>
+    .modQ-eq { font-size: 3.5rem; font-weight: 800; color: #4a4a4a; margin-bottom: 40px; display: flex; align-items: center; gap: 15px; }
+    .modQ-num { background: white; width: 70px; height: 70px; border-radius: 20px; display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 16px rgba(0,0,0,0.1); }
+    .modQ-symbol { color: #ff6b6b; }
+    .modQ-choices { display: flex; gap: 15px; flex-wrap: wrap; justify-content: center; }
+    .modQ-btn { width: 70px; height: 70px; border-radius: 50%; background: white; border: none; font-size: 2rem; font-weight: 800; color: #4a4a4a; box-shadow: 0 6px 0 #d1d1d1; cursor: pointer; }
+    .modQ-btn:active { transform: translateY(4px); box-shadow: 0 2px 0 #d1d1d1; }
+    .modQ-btn.correct { background: #4ecdc4; color: white; box-shadow: 0 6px 0 #3ba89f; }
+    .modQ-btn.wrong { background: #ff6b6b; color: white; box-shadow: 0 6px 0 #d9534f; animation: modQ-shake 0.5s; }
+    @keyframes modQ-shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-10px); } 75% { transform: translateX(10px); } }
+</style>
+<div class="module-content"><div class="modQ-eq" id="modQ-eq"></div><div class="modQ-choices" id="modQ-choices"></div></div>
+<script>
+    let modQ_a, modQ_b, modQ_target;
+    function initModule() {
+        modQ_a = Math.floor(Math.random() * 4) + 2; modQ_b = Math.floor(Math.random() * modQ_a) + 1; modQ_target = modQ_a - modQ_b;
+        window.setInstruction(`${modQ_a} minus ${modQ_b} equals?`, `${modQ_a} 减 ${modQ_b} 等于？`);
+        document.getElementById('modQ-eq').innerHTML = `<div class="modQ-num">${modQ_a}</div><div class="modQ-symbol">-</div><div class="modQ-num">${modQ_b}</div><div class="modQ-symbol">=</div><div class="modQ-num">?</div>`;
+        const choicesDiv = document.getElementById('modQ-choices'); choicesDiv.innerHTML = '';
+        let options = new Set([modQ_target]); while(options.size < 3) { let r = Math.floor(Math.random() * 5); if(r !== modQ_target) options.add(r); }
+        Array.from(options).sort(() => Math.random() - 0.5).forEach(num => { const btn = document.createElement('button'); btn.className = 'modQ-btn'; btn.innerText = num; btn.onclick = () => modQ_check(num, btn); choicesDiv.appendChild(btn); });
+    }
+    function destroyModule() { window.speechSynthesis.cancel(); }
+    function onLanguageChange() { initModule(); }
+    function modQ_check(num, btn) {
+        if(num === modQ_target) { btn.classList.add('correct'); window.showCelebration("Yes!", "答对了！", "Next", "下一题", initModule); }
+        else { btn.classList.add('wrong'); window.speak("Try again!", "再试一次！", getLangCode()); setTimeout(() => btn.classList.remove('wrong'), 500); }
+    }
+</script>

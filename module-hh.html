@@ -1,52 +1,28 @@
 <style>
-    .modHH-grid { display: flex; gap: 40px; flex-wrap: wrap; justify-content: center; }
-    .modHH-shape { width: 140px; height: 140px; cursor: pointer; transition: transform 0.2s; filter: drop-shadow(0px 10px 10px rgba(0,0,0,0.15)); }
+    .modHH-grid { display: flex; gap: 30px; flex-wrap: wrap; justify-content: center; }
+    .modHH-shape { width: 120px; height: 120px; cursor: pointer; transition: transform 0.2s; filter: drop-shadow(0px 8px 8px rgba(0,0,0,0.15)); }
     .modHH-shape:active { transform: scale(0.9); }
-    .modHH-shape.correct { animation: modHH-flyaway 0.8s forwards; }
+    .modHH-shape.correct { animation: modHH-fly 0.8s forwards; }
     .modHH-shape.wrong { animation: modHH-shake 0.5s; }
-    @keyframes modHH-flyaway { 0% { transform: scale(1) rotate(0); opacity: 1; } 100% { transform: scale(0) rotate(360deg) translateY(-200px); opacity: 0; } }
-    @keyframes modHH-shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-15px); } 75% { transform: translateX(15px); } }
+    @keyframes modHH-fly { 0% { transform: scale(1); opacity: 1; } 100% { transform: scale(0) translateY(-150px); opacity: 0; } }
+    @keyframes modHH-shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-10px); } 75% { transform: translateX(10px); } }
 </style>
-
-<div class="module-content">
-    <div class="modHH-grid" id="modHH-grid"></div>
-</div>
-
+<div class="module-content"><div class="modHH-grid" id="modHH-grid"></div></div>
 <script>
-    const modHH_shapes = [
-        { en: 'Circle', zh: '圆形', img: 'shape-circle.png' },
-        { en: 'Square', zh: '正方形', img: 'shape-square.png' },
-        { en: 'Triangle', zh: '三角形', img: 'shape-triangle.png' }
-    ];
+    const modHH_shapes = [{ en: 'Circle', zh: '圆形', img: 'shape-circle.png' }, { en: 'Square', zh: '正方形', img: 'shape-square.png' }, { en: 'Triangle', zh: '三角形', img: 'shape-triangle.png' }];
     let modHH_target;
-
-    function initModule() { modHH_generate(); }
-    function destroyModule() { window.speechSynthesis.cancel(); }
-
-    function modHH_generate() {
+    function initModule() {
         modHH_target = modHH_shapes[Math.floor(Math.random() * modHH_shapes.length)];
-        const shapeName = window.appState.currentLang === 'en' ? modHH_target.en : modHH_target.zh;
-        window.setInstruction(`Tap the ${shapeName}!`, `点击${shapeName}！`);
-
+        const name = window.appState.currentLang === 'en' ? modHH_target.en : modHH_target.zh;
+        window.setInstruction(`Tap the ${name}!`, `点击${name}！`);
         const options = [...modHH_shapes].sort(() => Math.random() - 0.5);
-        const grid = document.getElementById('modHH-grid');
-        grid.innerHTML = '';
-        options.forEach(shape => {
-            const img = document.createElement('img');
-            img.src = shape.img; img.className = 'modHH-shape';
-            img.onclick = () => modHH_check(shape, img);
-            grid.appendChild(img);
-        });
+        const grid = document.getElementById('modHH-grid'); grid.innerHTML = '';
+        options.forEach(shape => { const img = document.createElement('img'); img.src = shape.img; img.className = 'modHH-shape'; img.onclick = () => modHH_check(shape, img); grid.appendChild(img); });
     }
-
+    function destroyModule() { window.speechSynthesis.cancel(); }
+    function onLanguageChange() { initModule(); }
     function modHH_check(shape, imgEl) {
-        if(shape.en === modHH_target.en) {
-            imgEl.classList.add('correct');
-            window.showCelebration("Yes!", "答对了！", "Next Shape", "下一个形状", initModule);
-        } else {
-            imgEl.classList.add('wrong');
-            window.speak(window.appState.currentLang === 'en' ? "Try again!" : "再试一次！", getLangCode());
-            setTimeout(() => imgEl.classList.remove('wrong'), 500);
-        }
+        if(shape.en === modHH_target.en) { imgEl.classList.add('correct'); window.showCelebration("Yes!", "答对了！", "Next", "下一题", initModule); }
+        else { imgEl.classList.add('wrong'); window.speak("Try again!", "再试一次！", getLangCode()); setTimeout(() => imgEl.classList.remove('wrong'), 500); }
     }
 </script>

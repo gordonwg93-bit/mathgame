@@ -1,0 +1,33 @@
+<style>
+    .modM-eq { font-size: 3.5rem; font-weight: 800; color: #4a4a4a; margin-bottom: 40px; display: flex; align-items: center; gap: 15px; }
+    .modM-num { background: white; width: 70px; height: 70px; border-radius: 20px; display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 16px rgba(0,0,0,0.1); }
+    .modM-symbol { color: #ff6b6b; }
+    .modM-choices { display: flex; gap: 15px; flex-wrap: wrap; justify-content: center; }
+    .modM-btn { width: 70px; height: 70px; border-radius: 50%; background: white; border: none; font-size: 2rem; font-weight: 800; color: #4a4a4a; box-shadow: 0 6px 0 #d1d1d1; cursor: pointer; }
+    .modM-btn:active { transform: translateY(4px); box-shadow: 0 2px 0 #d1d1d1; }
+    .modM-btn.correct { background: #4ecdc4; color: white; box-shadow: 0 6px 0 #3ba89f; }
+    .modM-btn.wrong { background: #ff6b6b; color: white; box-shadow: 0 6px 0 #d9534f; animation: modM-shake 0.5s; }
+    @keyframes modM-shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-10px); } 75% { transform: translateX(10px); } }
+</style>
+<div class="module-content"><div class="modM-eq" id="modM-eq"></div><div class="modM-choices" id="modM-choices"></div></div>
+<script>
+    let modM_a, modM_b, modM_target;
+    function initModule() {
+        modM_a = Math.floor(Math.random() * 9) + 1; modM_b = Math.floor(Math.random() * (10 - modM_a)) + 1; modM_target = modM_a + modM_b;
+        window.setInstruction(`${modM_a} plus ${modM_b} equals?`, `${modM_a} 加 ${modM_b} 等于？`);
+        document.getElementById('modM-eq').innerHTML = `<div class="modM-num">${modM_a}</div><div class="modM-symbol">+</div><div class="modM-num">${modM_b}</div><div class="modM-symbol">=</div><div class="modM-num">?</div>`;
+        const choicesDiv = document.getElementById('modM-choices'); choicesDiv.innerHTML = '';
+        let options = new Set([modM_target]);
+        while(options.size < 4) { let r = Math.floor(Math.random() * 10) + 1; if(r !== modM_target) options.add(r); }
+        Array.from(options).sort(() => Math.random() - 0.5).forEach(num => {
+            const btn = document.createElement('button'); btn.className = 'modM-btn'; btn.innerText = num;
+            btn.onclick = () => modM_check(num, btn); choicesDiv.appendChild(btn);
+        });
+    }
+    function destroyModule() { window.speechSynthesis.cancel(); }
+    function onLanguageChange() { initModule(); }
+    function modM_check(num, btn) {
+        if(num === modM_target) { btn.classList.add('correct'); window.showCelebration("Yes!", "答对了！", "Next", "下一题", initModule); }
+        else { btn.classList.add('wrong'); window.speak("Try again!", "再试一次！", getLangCode()); setTimeout(() => btn.classList.remove('wrong'), 500); }
+    }
+</script>

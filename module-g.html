@@ -1,58 +1,38 @@
 <style>
-    .modG-arena { display: flex; gap: 30px; align-items: center; justify-content: center; flex-wrap: wrap; margin-bottom: 20px; }
-    .modG-group { display: flex; flex-wrap: wrap; gap: 8px; padding: 25px; border-radius: 30px; background: white; box-shadow: 0 8px 16px rgba(0,0,0,0.1); cursor: pointer; transition: transform 0.2s; min-width: 140px; min-height: 140px; justify-content: center; align-items: center; max-width: 220px; }
+    .modG-arena { display: flex; gap: 20px; align-items: center; justify-content: center; flex-wrap: wrap; margin-bottom: 20px; }
+    .modG-group { display: flex; flex-wrap: wrap; gap: 5px; padding: 20px; border-radius: 25px; background: white; box-shadow: 0 8px 16px rgba(0,0,0,0.1); cursor: pointer; transition: transform 0.2s; min-width: 120px; min-height: 120px; justify-content: center; align-items: center; max-width: 200px; }
     .modG-group:active { transform: scale(0.95); }
     .modG-group.correct { background: #4ecdc4; box-shadow: 0 8px 16px rgba(78,205,196,0.4); animation: modG-pop 0.5s; }
     .modG-group.wrong { background: #ff6b6b; animation: modG-shake 0.5s; }
-    .modG-item { width: 50px; height: 50px; filter: drop-shadow(0px 3px 3px rgba(0,0,0,0.15)); }
-    .modG-vs { font-size: 2.5rem; font-weight: 800; color: #ff6b6b; }
+    .modG-item { width: 40px; height: 40px; filter: drop-shadow(0px 3px 3px rgba(0,0,0,0.15)); }
+    .modG-vs { font-size: 2rem; font-weight: 800; color: #ff6b6b; }
     @keyframes modG-pop { 0% { transform: scale(1); } 50% { transform: scale(1.08); } 100% { transform: scale(1); } }
     @keyframes modG-shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-10px); } 75% { transform: translateX(10px); } }
 </style>
-
-<div class="module-content">
-    <div class="modG-arena" id="modG-arena"></div>
-</div>
-
+<div class="module-content"><div class="modG-arena" id="modG-arena"></div></div>
 <script>
-    const modG_items = ['apple.png', 'star.png', 'orange.png', 'watermelon.png', 'banana.png'];
-    let modG_answerSide;
-
-    function initModule() { modG_generate(); }
-    function destroyModule() { window.speechSynthesis.cancel(); }
-
-    function modG_generate() {
-        window.setInstruction("Which has more?", "哪边更多？");
-        let countA = Math.floor(Math.random() * 8) + 1;
-        let countB = Math.floor(Math.random() * 8) + 1;
-        while(countB === countA) countB = Math.floor(Math.random() * 8) + 1;
-        modG_answerSide = countA > countB ? 'left' : 'right';
-        const itemImg = modG_items[Math.floor(Math.random() * modG_items.length)];
-
-        const arena = document.getElementById('modG-arena');
-        arena.innerHTML = '';
-
-        const groupA = document.createElement('div'); groupA.className = 'modG-group';
-        for(let i=0; i<countA; i++) { const img = document.createElement('img'); img.src = itemImg; img.className = 'modG-item'; groupA.appendChild(img); }
-        groupA.onclick = () => modG_check('left', groupA);
-        arena.appendChild(groupA);
-
+    const modG_imgs = ['apple.png', 'star.png', 'butterfly.png', 'fish.png', 'car.png']; 
+    let modG_answerSide = '', modG_isMore = true;
+    function initModule() { 
+        modG_isMore = Math.random() > 0.5;
+        window.setInstruction(modG_isMore ? "Which has more?" : "Which has less?", modG_isMore ? "哪边更多？" : "哪边更少？");
+        let countA = Math.floor(Math.random() * 9) + 1, countB = Math.floor(Math.random() * 9) + 1; 
+        while(countB === countA) countB = Math.floor(Math.random() * 9) + 1;
+        modG_answerSide = modG_isMore ? (countA > countB ? 'left' : 'right') : (countA < countB ? 'left' : 'right');
+        const itemImg = modG_imgs[Math.floor(Math.random() * modG_imgs.length)];
+        const arena = document.getElementById('modG-arena'); arena.innerHTML = '';
+        const groupA = document.createElement('div'); groupA.className = 'modG-group'; 
+        for(let i=0; i<countA; i++) { const img = document.createElement('img'); img.src = itemImg; img.className = 'modG-item'; groupA.appendChild(img); } 
+        groupA.onclick = () => modG_check('left', groupA); arena.appendChild(groupA);
         const vs = document.createElement('div'); vs.className = 'modG-vs'; vs.innerText = 'VS'; arena.appendChild(vs);
-
-        const groupB = document.createElement('div'); groupB.className = 'modG-group';
-        for(let i=0; i<countB; i++) { const img = document.createElement('img'); img.src = itemImg; img.className = 'modG-item'; groupB.appendChild(img); }
-        groupB.onclick = () => modG_check('right', groupB);
-        arena.appendChild(groupB);
+        const groupB = document.createElement('div'); groupB.className = 'modG-group'; 
+        for(let i=0; i<countB; i++) { const img = document.createElement('img'); img.src = itemImg; img.className = 'modG-item'; groupB.appendChild(img); } 
+        groupB.onclick = () => modG_check('right', groupB); arena.appendChild(groupB);
     }
-
+    function destroyModule() { window.speechSynthesis.cancel(); }
+    function onLanguageChange() { initModule(); }
     function modG_check(side, el) {
-        if(side === modG_answerSide) {
-            el.classList.add('correct');
-            window.showCelebration("Yes!", "答对了！", "Next Round", "下一轮", initModule);
-        } else {
-            el.classList.add('wrong');
-            window.speak(window.appState.currentLang === 'en' ? "Try again!" : "再试一次！", getLangCode());
-            setTimeout(() => el.classList.remove('wrong'), 500);
-        }
+        if(side === modG_answerSide) { el.classList.add('correct'); window.showCelebration("Yes!", "答对了！", "Next", "下一题", initModule); }
+        else { el.classList.add('wrong'); window.speak("Try again!", "再试一次！", getLangCode()); setTimeout(() => el.classList.remove('wrong'), 500); }
     }
 </script>

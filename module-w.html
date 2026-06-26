@@ -1,0 +1,42 @@
+<style>
+    .modW-stage { display: flex; gap: 15px; margin-bottom: 30px; align-items: center; flex-wrap: wrap; justify-content: center; }
+    .modW-group { display: flex; gap: 5px; padding: 10px; background: rgba(255,255,255,0.6); border-radius: 20px; flex-wrap: wrap; max-width: 200px; justify-content: center;}
+    .modW-item { width: 35px; height: 35px; filter: drop-shadow(0px 3px 3px rgba(0,0,0,0.15)); }
+    .modW-item.eaten { opacity: 0.2; filter: grayscale(1); }
+    .modW-choices { display: flex; gap: 15px; flex-wrap: wrap; justify-content: center; }
+    .modW-btn { width: 70px; height: 70px; border-radius: 50%; background: white; border: none; font-size: 2rem; font-weight: 800; color: #4a4a4a; box-shadow: 0 6px 0 #d1d1d1; cursor: pointer; }
+    .modW-btn:active { transform: translateY(4px); box-shadow: 0 2px 0 #d1d1d1; }
+    .modW-btn.correct { background: #4ecdc4; color: white; }
+    .modW-btn.wrong { background: #ff6b6b; color: white; animation: modW-shake 0.5s; }
+    @keyframes modW-shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-10px); } 75% { transform: translateX(10px); } }
+</style>
+<div class="module-content"><div class="modW-stage" id="modW-stage"></div><div class="modW-choices" id="modW-choices"></div></div>
+<script>
+    let modW_a, modW_b, modW_op, modW_target;
+    const modW_imgs = ['apple.png', 'star.png', 'cookie.png'];
+    function initModule() {
+        const imgSrc = modW_imgs[Math.floor(Math.random() * modW_imgs.length)];
+        let enStory, zhStory;
+        if(Math.random() > 0.5) {
+            modW_a = Math.floor(Math.random()*8)+1; modW_b = Math.floor(Math.random()*(10-modW_a))+1; modW_op = '+'; modW_target = modW_a + modW_b;
+            enStory = `Bao has ${modW_a}. He gets ${modW_b} more. How many?`; zhStory = `宝有 ${modW_a} 个。又得到 ${modW_b} 个。一共几个？`;
+        } else {
+            modW_a = Math.floor(Math.random()*8)+2; modW_b = Math.floor(Math.random()*(modW_a-1))+1; modW_op = '-'; modW_target = modW_a - modW_b;
+            enStory = `Bao has ${modW_a}. He eats ${modW_b}. How many left?`; zhStory = `宝有 ${modW_a} 个。吃掉了 ${modW_b} 个。还剩几个？`;
+        }
+        window.setInstruction(enStory, zhStory);
+        const stage = document.getElementById('modW-stage'); stage.innerHTML = '';
+        const gA = document.createElement('div'); gA.className = 'modW-group'; 
+        for(let i=0; i<modW_a; i++) { const img = document.createElement('img'); img.src = imgSrc; img.className = 'modW-item'; if(modW_op === '-' && i >= modW_target) img.classList.add('eaten'); gA.appendChild(img); } 
+        stage.appendChild(gA);
+        const choicesDiv = document.getElementById('modW-choices'); choicesDiv.innerHTML = '';
+        let options = new Set([modW_target]); while(options.size < 3) { let r = Math.floor(Math.random() * 10); if(r !== modW_target && r >= 0) options.add(r); }
+        Array.from(options).sort(() => Math.random() - 0.5).forEach(num => { const btn = document.createElement('button'); btn.className = 'modW-btn'; btn.innerText = num; btn.onclick = () => modW_check(num, btn); choicesDiv.appendChild(btn); });
+    }
+    function destroyModule() { window.speechSynthesis.cancel(); }
+    function onLanguageChange() { initModule(); }
+    function modW_check(num, btn) {
+        if(num === modW_target) { btn.classList.add('correct'); window.showCelebration("Yes!", "答对了！", "Next", "下一题", initModule); }
+        else { btn.classList.add('wrong'); window.speak("Try again!", "再试一次！", getLangCode()); setTimeout(() => btn.classList.remove('wrong'), 500); }
+    }
+</script>

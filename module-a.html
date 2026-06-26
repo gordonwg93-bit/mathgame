@@ -1,62 +1,31 @@
-<!-- Game Specific CSS Only -->
 <style>
-    .modA-grid { display: flex; gap: 40px; }
-    .modA-apple { width: 120px; height: auto; cursor: pointer; transition: transform 0.2s; filter: drop-shadow(0px 10px 10px rgba(0,0,0,0.2)); }
-    .modA-apple:active { transform: scale(0.9); }
-    .modA-apple.tapped { animation: modA-pop 0.5s forwards; }
-    @keyframes modA-pop { 0% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.5); opacity: 0.5; } 100% { transform: scale(0); opacity: 0; } }
+    .modA-grid { display: flex; flex-wrap: wrap; gap: 20px; justify-content: center; max-width: 350px; }
+    .modA-item { width: 80px; height: 80px; cursor: pointer; transition: transform 0.2s; filter: drop-shadow(0px 8px 8px rgba(0,0,0,0.15)); }
+    .modA-item:active { transform: scale(0.9); }
+    .modA-item.tapped { animation: modA-pop 0.5s forwards; }
+    @keyframes modA-pop { 0% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.3); opacity: 0.5; } 100% { transform: scale(0); opacity: 0; } }
 </style>
-
-<!-- Game Content Only (Injected into the Shell) -->
-<div class="module-content">
-    <div class="modA-grid" id="modA-grid">
-        <img src="apple.png" class="modA-apple" onclick="modA_tap(this)">
-        <img src="apple.png" class="modA-apple" onclick="modA_tap(this)">
-        <img src="apple.png" class="modA-apple" onclick="modA_tap(this)">
-    </div>
-</div>
-
-<!-- Game Logic Only -->
+<div class="module-content"><div class="modA-grid" id="modA-grid"></div></div>
 <script>
-    let modA_count = 0;
-    const modA_target = 3;
-
-    // Called by the Shell when the game loads
+    let modA_count = 0, modA_target = 0;
+    const modA_imgs = ['apple.png', 'star.png', 'butterfly.png'];
     function initModule() {
-        modA_count = 0;
-        document.querySelectorAll('.modA-apple').forEach(a => a.classList.remove('tapped'));
-        
-        // Tell the Shell what the instruction is (EN, ZH)
-        window.setInstruction("Tap 3 Apples!", "点击 3 个苹果！");
-        
-        // Tell the Shell what the 🔊 button should do
-        window.setRepeatFunction(() => {
-            window.speak(window.appState.currentLang === 'en' ? "Tap 3 Apples!" : "点击 3 个苹果！", getLangCode());
-        });
-    }
-
-    // Called by the Shell when leaving the game
-    function destroyModule() {
-        window.speechSynthesis.cancel();
-    }
-
-    // Game Specific Logic
-    function modA_tap(el) {
-        if (el.classList.contains('tapped')) return;
-        el.classList.add('tapped');
-        modA_count++;
-
-        const numsEn = ["", "One", "Two", "Three"];
-        const numsZh = ["", "一", "二", "三"];
-        window.speak(window.appState.currentLang === 'en' ? numsEn[modA_count] : numsZh[modA_count], getLangCode());
-
-        if (modA_count === modA_target) {
-            // Tell the Shell to show the Universal Celebration Overlay!
-            window.showCelebration(
-                "Great Job!", "太棒了！",       // Celebration text (EN, ZH)
-                "Play Again", "再玩一次",       // Next button text (EN, ZH)
-                initModule                     // What to do when they click "Next"
-            );
+        modA_count = 0; modA_target = Math.floor(Math.random() * 3) + 1;
+        const imgSrc = modA_imgs[Math.floor(Math.random() * modA_imgs.length)];
+        window.setInstruction(`Tap ${modA_target}!`, `点击 ${modA_target} 个！`);
+        const grid = document.getElementById('modA-grid'); grid.innerHTML = '';
+        for(let i=0; i<5; i++) { 
+            const img = document.createElement('img'); img.src = imgSrc; img.className = 'modA-item'; 
+            img.onclick = () => modA_tap(img); grid.appendChild(img); 
         }
+    }
+    function destroyModule() { window.speechSynthesis.cancel(); }
+    function onLanguageChange() { initModule(); }
+    function modA_tap(el) {
+        if (el.classList.contains('tapped')) return; el.classList.add('tapped'); modA_count++;
+        const numsEn = ["", "One", "Two", "Three"], numsZh = ["", "一", "二", "三"];
+        window.speak(window.appState.currentLang === 'en' ? numsEn[modA_count] : numsZh[modA_count], getLangCode());
+        if (modA_count === modA_target) setTimeout(() => window.showCelebration("Great Job!", "太棒了！", "Next", "下一题", initModule), 600);
+        else if (modA_count > modA_target) setTimeout(() => { window.speak("Too many!", "太多了！", getLangCode()); setTimeout(initModule, 1500); }, 400);
     }
 </script>

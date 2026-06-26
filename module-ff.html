@@ -1,76 +1,37 @@
 <style>
-    .modFF-grid { display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; width: 300px; height: 300px; gap: 10px; margin-bottom: 40px; background: white; padding: 15px; border-radius: 30px; box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
-    .modFF-cell { border-radius: 20px; display: flex; align-items: center; justify-content: center; position: relative; }
-    .modFF-cell:nth-child(1) { background: #ffe0e0; }
-    .modFF-cell:nth-child(2) { background: #e0f7fa; }
-    .modFF-cell:nth-child(3) { background: #e8f5e9; }
-    .modFF-cell:nth-child(4) { background: #fff9c4; }
-    .modFF-bunny { width: 100px; height: 100px; filter: drop-shadow(0px 5px 5px rgba(0,0,0,0.15)); animation: modFF-hop 2s infinite; }
-    @keyframes modFF-hop { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
-    .modFF-choices { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; width: 100%; max-width: 400px; }
-    .modFF-btn { padding: 15px; border-radius: 20px; background: white; border: none; font-size: 1.3rem; font-weight: 800; color: #4a4a4a; box-shadow: 0 5px 0 #d1d1d1; cursor: pointer; transition: transform 0.1s; }
-    .modFF-btn:active { transform: translateY(3px); box-shadow: 0 2px 0 #d1d1d1; }
-    .modFF-btn.correct { background: #4ecdc4; color: white; box-shadow: 0 5px 0 #3ba89f; }
-    .modFF-btn.wrong { background: #ff6b6b; color: white; box-shadow: 0 5px 0 #d9534f; animation: modFF-shake 0.5s; }
+    .modFF-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; width: 300px; height: 300px; margin-bottom: 40px; background: white; padding: 15px; border-radius: 30px; box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
+    .modFF-cell { border-radius: 15px; display: flex; align-items: center; justify-content: center; background: #f0f0f0; }
+    .modFF-cell.center { background: #e0f7fa; }
+    .modFF-item { width: 70px; height: 70px; filter: drop-shadow(0px 5px 5px rgba(0,0,0,0.15)); }
+    .modFF-choices { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; width: 100%; max-width: 350px; }
+    .modFF-btn { padding: 15px 5px; border-radius: 15px; background: white; border: none; font-size: 1rem; font-weight: 800; color: #4a4a4a; box-shadow: 0 4px 0 #d1d1d1; cursor: pointer; }
+    .modFF-btn:active { transform: translateY(3px); box-shadow: 0 1px 0 #d1d1d1; }
+    .modFF-btn.correct { background: #4ecdc4; color: white; }
+    .modFF-btn.wrong { background: #ff6b6b; color: white; animation: modFF-shake 0.5s; }
     @keyframes modFF-shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
 </style>
-
-<div class="module-content">
-    <div class="modFF-grid" id="modFF-grid">
-        <div class="modFF-cell" id="cell-tl"></div>
-        <div class="modFF-cell" id="cell-tr"></div>
-        <div class="modFF-cell" id="cell-bl"></div>
-        <div class="modFF-cell" id="cell-br"></div>
-    </div>
-    <div class="modFF-choices" id="modFF-choices"></div>
-</div>
-
+<div class="module-content"><div class="modFF-grid" id="modFF-grid"></div><div class="modFF-choices" id="modFF-choices"></div></div>
 <script>
-    const modFF_positions = [
-        { id: 'cell-tl', en: 'Top Left', zh: '左上' },
-        { id: 'cell-tr', en: 'Top Right', zh: '右上' },
-        { id: 'cell-bl', en: 'Bottom Left', zh: '左下' },
-        { id: 'cell-br', en: 'Bottom Right', zh: '右下' }
-    ];
-    let modFF_targetPos;
-
-    function initModule() { modFF_generate(); }
-    function destroyModule() { 
-        window.speechSynthesis.cancel(); 
-        document.querySelectorAll('.modFF-bunny').forEach(b => b.remove());
-    }
-
-    function modFF_generate() {
-        document.querySelectorAll('.modFF-bunny').forEach(b => b.remove());
-        modFF_targetPos = modFF_positions[Math.floor(Math.random() * modFF_positions.length)];
-        
-        const cell = document.getElementById(modFF_targetPos.id);
-        const bunny = document.createElement('img');
-        bunny.src = 'bunny.png'; bunny.className = 'modFF-bunny';
-        cell.appendChild(bunny);
-
-        window.setInstruction("Where is the bunny?", "小兔子在哪里？");
-
-        const choicesDiv = document.getElementById('modFF-choices');
-        choicesDiv.innerHTML = '';
-        const options = [...modFF_positions].sort(() => Math.random() - 0.5);
-        options.forEach(pos => {
-            const btn = document.createElement('button');
-            btn.className = 'modFF-btn';
-            btn.innerText = window.appState.currentLang === 'en' ? pos.en : pos.zh;
-            btn.onclick = () => modFF_check(pos, btn);
-            choicesDiv.appendChild(btn);
-        });
-    }
-
-    function modFF_check(pos, btn) {
-        if(pos.id === modFF_targetPos.id) {
-            btn.classList.add('correct');
-            window.showCelebration("Yes!", "答对了！", "Next Position", "下一个位置", initModule);
-        } else {
-            btn.classList.add('wrong');
-            window.speak(window.appState.currentLang === 'en' ? "Try again!" : "再试一次！", getLangCode());
-            setTimeout(() => btn.classList.remove('wrong'), 500);
+    const modFF_pos = [{ id: 0, en: 'Top Left', zh: '左上' }, { id: 1, en: 'Top', zh: '上' }, { id: 2, en: 'Top Right', zh: '右上' }, { id: 3, en: 'Left', zh: '左' }, { id: 5, en: 'Right', zh: '右' }, { id: 6, en: 'Bottom Left', zh: '左下' }, { id: 7, en: 'Bottom', zh: '下' }, { id: 8, en: 'Bottom Right', zh: '右下' }];
+    let modFF_target = 0;
+    function initModule() {
+        document.querySelectorAll('.modFF-item').forEach(b => b.remove());
+        modFF_target = modFF_pos[Math.floor(Math.random() * modFF_pos.length)].id;
+        const grid = document.getElementById('modFF-grid'); grid.innerHTML = '';
+        for(let i=0; i<9; i++) {
+            const cell = document.createElement('div'); cell.className = 'modFF-cell'; if(i === 4) cell.classList.add('center');
+            if(i === modFF_target) { const img = document.createElement('img'); img.src = 'apple.png'; img.className = 'modFF-item'; cell.appendChild(img); }
+            grid.appendChild(cell);
         }
+        window.setInstruction("Where is the apple?", "苹果在哪里？");
+        const choicesDiv = document.getElementById('modFF-choices'); choicesDiv.innerHTML = '';
+        const options = [...modFF_pos].sort(() => Math.random() - 0.5).slice(0, 6);
+        options.forEach(pos => { const btn = document.createElement('button'); btn.className = 'modFF-btn'; btn.innerText = window.appState.currentLang === 'en' ? pos.en : pos.zh; btn.onclick = () => modFF_check(pos.id, btn); choicesDiv.appendChild(btn); });
+    }
+    function destroyModule() { window.speechSynthesis.cancel(); }
+    function onLanguageChange() { initModule(); }
+    function modFF_check(posId, btn) {
+        if(posId === modFF_target) { btn.classList.add('correct'); window.showCelebration("Yes!", "答对了！", "Next", "下一题", initModule); }
+        else { btn.classList.add('wrong'); window.speak("Try again!", "再试一次！", getLangCode()); setTimeout(() => btn.classList.remove('wrong'), 500); }
     }
 </script>

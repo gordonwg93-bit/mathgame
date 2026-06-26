@@ -1,0 +1,29 @@
+<style>
+    .modY-box { background: white; padding: 30px; border-radius: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); margin-bottom: 30px; text-align: center; }
+    .modY-text { font-size: 3rem; font-weight: 800; color: #4a4a4a; }
+    .modY-choices { display: flex; gap: 15px; flex-wrap: wrap; justify-content: center; }
+    .modY-btn { width: 70px; height: 70px; border-radius: 50%; background: white; border: none; font-size: 2rem; font-weight: 800; color: #4a4a4a; box-shadow: 0 6px 0 #d1d1d1; cursor: pointer; }
+    .modY-btn:active { transform: translateY(4px); box-shadow: 0 2px 0 #d1d1d1; }
+    .modY-btn.correct { background: #4ecdc4; color: white; }
+    .modY-btn.wrong { background: #ff6b6b; color: white; animation: modY-shake 0.5s; }
+    @keyframes modY-shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-10px); } 75% { transform: translateX(10px); } }
+</style>
+<div class="module-content"><div class="modY-box"><div class="modY-text" id="modY-text"></div></div><div class="modY-choices" id="modY-choices"></div></div>
+<script>
+    let modY_num = 0, modY_isMore = true;
+    function initModule() {
+        modY_num = Math.floor(Math.random() * 19) + 1; modY_isMore = Math.random() > 0.5;
+        const correct = modY_isMore ? modY_num + 1 : modY_num - 1;
+        window.setInstruction(modY_isMore ? `What is one more than ${modY_num}?` : `What is one less than ${modY_num}?`, modY_isMore ? `${modY_num} 多 1 是几？` : `${modY_num} 少 1 是几？`);
+        document.getElementById('modY-text').innerText = modY_num;
+        const choicesDiv = document.getElementById('modY-choices'); choicesDiv.innerHTML = '';
+        let options = new Set([correct]); while(options.size < 3) { let r = Math.floor(Math.random() * 20) + 1; if(r !== correct && r >= 0) options.add(r); }
+        Array.from(options).sort(() => Math.random() - 0.5).forEach(num => { const btn = document.createElement('button'); btn.className = 'modY-btn'; btn.innerText = num; btn.onclick = () => modY_check(num, btn, correct); choicesDiv.appendChild(btn); });
+    }
+    function destroyModule() { window.speechSynthesis.cancel(); }
+    function onLanguageChange() { initModule(); }
+    function modY_check(num, btn, correct) {
+        if(num === correct) { btn.classList.add('correct'); window.showCelebration("Yes!", "答对了！", "Next", "下一题", initModule); }
+        else { btn.classList.add('wrong'); window.speak("Try again!", "再试一次！", getLangCode()); setTimeout(() => btn.classList.remove('wrong'), 500); }
+    }
+</script>

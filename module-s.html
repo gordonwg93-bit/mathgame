@@ -1,0 +1,44 @@
+<style>
+    .modS-stage { display: flex; gap: 10px; margin-bottom: 30px; flex-wrap: wrap; justify-content: center; }
+    .modS-item { width: 50px; height: 50px; cursor: pointer; transition: transform 0.2s; filter: drop-shadow(0px 4px 4px rgba(0,0,0,0.15)); }
+    .modS-item:active { transform: scale(0.9); }
+    .modS-item.eaten { animation: modS-chomp 0.6s forwards; pointer-events: none; }
+    .modS-choices { display: flex; gap: 15px; flex-wrap: wrap; justify-content: center; opacity: 0; transition: opacity 0.3s; pointer-events: none; }
+    .modS-choices.show { opacity: 1; pointer-events: auto; }
+    .modS-btn { width: 70px; height: 70px; border-radius: 50%; background: white; border: none; font-size: 2rem; font-weight: 800; color: #4a4a4a; box-shadow: 0 6px 0 #d1d1d1; cursor: pointer; }
+    .modS-btn:active { transform: translateY(4px); box-shadow: 0 2px 0 #d1d1d1; }
+    .modS-btn.correct { background: #4ecdc4; color: white; box-shadow: 0 6px 0 #3ba89f; }
+    .modS-btn.wrong { background: #ff6b6b; color: white; box-shadow: 0 6px 0 #d9534f; animation: modS-shake 0.5s; }
+    @keyframes modS-chomp { 0% { transform: scale(1) rotate(0); opacity: 1; } 100% { transform: scale(0) rotate(45deg); opacity: 0; } }
+    @keyframes modS-shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-10px); } 75% { transform: translateX(10px); } }
+</style>
+<div class="module-content"><div class="modS-stage" id="modS-stage"></div><div class="modS-choices" id="modS-choices"></div></div>
+<script>
+    let modS_start, modS_take, modS_answer, modS_eaten;
+    function initModule() {
+        modS_start = Math.floor(Math.random() * 5) + 6; // 6 to 10
+        modS_take = Math.floor(Math.random() * (modS_start - 1)) + 1; modS_answer = modS_start - modS_take; modS_eaten = 0;
+        window.setInstruction(`Tap to eat ${modS_take}!`, `点击吃掉 ${modS_take} 个！`);
+        const stage = document.getElementById('modS-stage'); stage.innerHTML = '';
+        for(let i=0; i<modS_start; i++) { const img = document.createElement('img'); img.src = 'star.png'; img.className = 'modS-item'; img.onclick = () => modS_eat(img); stage.appendChild(img); }
+        document.getElementById('modS-choices').classList.remove('show');
+    }
+    function destroyModule() { window.speechSynthesis.cancel(); }
+    function onLanguageChange() { initModule(); }
+    function modS_eat(el) {
+        if(el.classList.contains('eaten')) return; el.classList.add('eaten'); modS_eaten++;
+        if(modS_eaten === modS_take) setTimeout(modS_showChoices, 700);
+        else if(modS_eaten > modS_take) { window.speak("Too many!", "吃太多了！", getLangCode()); setTimeout(initModule, 1000); }
+    }
+    function modS_showChoices() {
+        window.setInstruction("How many are left?", "还剩几个？");
+        const choices = document.getElementById('modS-choices'); choices.innerHTML = '';
+        let options = new Set([modS_answer]); while(options.size < 3) { let r = Math.floor(Math.random() * 10); if(r !== modS_answer && r >= 0) options.add(r); }
+        Array.from(options).sort(() => Math.random() - 0.5).forEach(num => { const btn = document.createElement('button'); btn.className = 'modS-btn'; btn.innerText = num; btn.onclick = () => modS_check(num, btn); choices.appendChild(btn); });
+        choices.classList.add('show');
+    }
+    function modS_check(num, btn) {
+        if(num === modS_answer) { btn.classList.add('correct'); window.showCelebration("Yes!", "答对了！", "Next", "下一题", initModule); }
+        else { btn.classList.add('wrong'); window.speak("Try again!", "再试一次！", getLangCode()); setTimeout(() => btn.classList.remove('wrong'), 500); }
+    }
+</script>
