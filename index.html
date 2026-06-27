@@ -2,224 +2,393 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    
-    <!-- 📱 PWA / "FAKE APP" MAGIC FOR IPAD 📱 -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Bao's Math">
     <link rel="apple-touch-icon" href="icon.png">
     <link rel="manifest" href="manifest.json">
-    <!-- ----------------------------------------- -->
-
     <title>Bao's Bilingual Math</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@600;800&display=swap');
+        body { margin: 0; padding: 0; font-family: 'Nunito', sans-serif; background: linear-gradient(to bottom right, #e0f7fa, #fce4ec); height: 100vh; width: 100vw; overflow: hidden; user-select: none; -webkit-tap-highlight-color: transparent; }
         
-        body { 
-            margin: 0; padding: 0; font-family: 'Nunito', sans-serif; 
-            background: linear-gradient(to bottom right, #e0f7fa, #fce4ec); 
-            height: 100vh; width: 100vw; overflow: hidden; 
-            user-select: none; -webkit-tap-highlight-color: transparent; 
-        }
-        
-        /* --- TOP BAR --- */
-        .top-bar { 
-            position: absolute; top: 40px; width: 90%; 
-            display: flex; justify-content: space-between; align-items: center; z-index: 100; 
-        }
-        .lang-toggle { 
-            background: white; border: none; padding: 12px 24px; border-radius: 50px; 
-            font-size: 1.2rem; font-weight: 800; color: #ff6b6b; 
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1); cursor: pointer; transition: transform 0.2s;
-        }
+        .top-bar { position: absolute; top: 40px; width: 90%; display: flex; justify-content: space-between; align-items: center; z-index: 1000; }
+        .lang-toggle { background: white; border: none; padding: 12px 24px; border-radius: 50px; font-size: 1.2rem; font-weight: 800; color: #ff6b6b; box-shadow: 0 4px 6px rgba(0,0,0,0.1); cursor: pointer; }
         .lang-toggle:active { transform: scale(0.95); }
-        .mascot-img { 
-            width: 80px; height: auto; animation: bounce 2s infinite; 
-            filter: drop-shadow(0px 8px 8px rgba(0,0,0,0.15)); 
-        }
+        .top-bar-back-btn { background: #ff6b6b; color: white; border: none; width: 50px; height: 50px; border-radius: 50%; font-size: 1.5rem; box-shadow: 0 4px 6px rgba(0,0,0,0.15); cursor: pointer; display: none; align-items: center; justify-content: center; margin-right: 15px; transition: transform 0.2s; }
+        .top-bar-back-btn:active { transform: scale(0.9); }
+        .mascot-img { width: 80px; height: auto; animation: bounce 2s infinite; filter: drop-shadow(0px 8px 8px rgba(0,0,0,0.15)); cursor: pointer; }
 
-        /* --- SCREEN MANAGEMENT --- */
-        .screen { 
-            display: none; flex-direction: column; align-items: center; justify-content: center; 
-            height: 100vh; width: 100vw; 
-        }
+        .screen { display: none; flex-direction: column; align-items: center; justify-content: center; height: 100vh; width: 100vw; }
         .screen.active { display: flex; }
-        
-        /* --- MAP SCREEN --- */
-        .map-title { 
-            font-size: 2.5rem; font-weight: 800; color: #4a4a4a; 
-            margin-bottom: 30px; text-align: center;
-            text-shadow: 2px 2px 0px rgba(255,255,255,0.8); 
-        }
-        
-        .module-grid { 
-            display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); 
-            gap: 20px; width: 90%; max-width: 900px; padding-bottom: 40px;
-            overflow-y: auto; max-height: 75vh;
-        }
-        
-        .module-card {
-            background: white; border-radius: 25px; padding: 25px 15px; text-align: center;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.08); cursor: pointer; transition: transform 0.2s;
-            display: flex; flex-direction: column; align-items: center; gap: 12px;
-        }
+
+        .map-title { font-size: 2.5rem; font-weight: 800; color: #4a4a4a; margin-bottom: 20px; text-align: center; text-shadow: 2px 2px 0px rgba(255,255,255,0.8); }
+        .module-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 15px; width: 95%; max-width: 1000px; padding-bottom: 40px; overflow-y: auto; max-height: 75vh; }
+        .module-card { background: white; border-radius: 20px; padding: 20px 10px; text-align: center; box-shadow: 0 8px 16px rgba(0,0,0,0.08); cursor: pointer; transition: transform 0.2s; display: flex; flex-direction: column; align-items: center; gap: 10px; position: relative; }
         .module-card:active { transform: scale(0.95); }
         .module-card.locked { background: #e8e8e8; opacity: 0.5; cursor: not-allowed; }
-        .module-icon { font-size: 3.5rem; }
-        .module-title { font-size: 1.1rem; font-weight: 800; color: #4a4a4a; line-height: 1.2; }
+        .module-icon { font-size: 3rem; }
+        .module-title { font-size: 0.95rem; font-weight: 800; color: #4a4a4a; line-height: 1.2; }
+        .badge-count { position: absolute; top: -5px; right: -5px; background: #4ecdc4; color: white; border-radius: 50%; width: 24px; height: 24px; font-size: 0.8rem; font-weight: 800; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 4px rgba(0,0,0,0.15); }
 
-        /* --- GAME SCREEN --- */
-        #game-screen { 
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
-            background: linear-gradient(to bottom right, #e0f7fa, #fce4ec); z-index: 50; 
-        }
+        #game-screen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(to bottom right, #e0f7fa, #fce4ec); z-index: 50; }
+        .game-template { width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; box-sizing: border-box; }
+        .game-inst { font-size: 2rem; font-weight: 800; color: #4a4a4a; margin-bottom: 15px; text-align: center; text-shadow: 2px 2px 0px rgba(255,255,255,0.8); min-height: 50px; }
+        .voice-btn { background: #ff6b6b; color: white; border: none; width: 60px; height: 60px; border-radius: 50%; font-size: 2rem; box-shadow: 0 4px 8px rgba(0,0,0,0.15); cursor: pointer; margin-bottom: 25px; display: flex; align-items: center; justify-content: center; transition: transform 0.1s; }
+        .voice-btn:active { transform: scale(0.9); }
+        #game-content-area { display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; flex: 1; }
+
+        .game-overlay { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(255, 255, 255, 0.95); display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 200; }
+        .game-overlay.show { display: flex; }
+        .celebrate-text { font-size: 3rem; font-weight: 800; color: #ff6b6b; margin-bottom: 30px; animation: popIn 0.5s; text-align: center; padding: 0 20px;}
+        .next-btn { background: #4ecdc4; color: white; border: none; padding: 20px 50px; border-radius: 50px; font-size: 1.8rem; font-weight: 800; box-shadow: 0 6px 0 #3ba89f; cursor: pointer; }
+        .next-btn:active { transform: translateY(4px); box-shadow: 0 2px 0 #3ba89f; }
+
+        /* Parent Dashboard Styling Modifications */
+        .parent-modal { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.6); display: none; justify-content: center; align-items: center; z-index: 5000; box-sizing: border-box; }
+        .parent-modal.show { display: flex; }
+        .modal-content { background: white; width: 90%; max-width: 650px; border-radius: 30px; padding: 30px; display: flex; flex-direction: column; max-height: 85vh; position: relative; box-shadow: 0 20px 40px rgba(0,0,0,0.3); }
+        .modal-close { position: absolute; top: 20px; right: 20px; background: #eee; border: none; font-size: 1.5rem; width: 40px; height: 40px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+        .modal-title { font-size: 1.8rem; font-weight: 800; margin-bottom: 15px; color: #333; text-align: center; }
         
-        .back-btn {
-            position: absolute; top: 40px; left: 20px; background: white; border: none; 
-            width: 50px; height: 50px; border-radius: 50%; font-size: 1.5rem; 
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1); cursor: pointer; z-index: 101;
-            display: flex; align-items: center; justify-content: center;
-        }
-        .back-btn:active { transform: scale(0.9); }
+        .pin-input-area { display: flex; flex-direction: column; align-items: center; gap: 15px; margin: 20px 0; }
+        .pin-box { font-size: 2rem; letter-spacing: 10px; text-align: center; padding: 10px; width: 150px; border: 3px solid #ddd; border-radius: 15px; font-weight: 800; }
+        .parent-btn { background: #ff6b6b; color: white; border: none; padding: 12px 30px; font-size: 1.1rem; font-weight: 800; border-radius: 50px; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        
+        .dashboard-body { overflow-y: auto; flex: 1; padding-right: 10px; margin-top: 10px; }
+        .stats-summary { display: flex; gap: 15px; margin-bottom: 20px; justify-content: space-around; background: #f7f9fa; padding: 15px; border-radius: 20px; text-align: center; }
+        .stat-box h4 { margin: 0 0 5px 0; color: #666; font-size: 0.9rem; }
+        .stat-box p { margin: 0; font-size: 1.6rem; font-weight: 800; color: #ff6b6b; }
+        
+        /* Module List Groups in Dashboard */
+        .dashboard-section-title { font-size: 1.1rem; font-weight: 800; margin: 20px 0 10px 0; color: #4a4a4a; display: flex; align-items: center; gap: 8px; }
+        .report-list { display: flex; flex-direction: column; gap: 6px; margin-bottom: 15px; }
+        .report-item { background: #f8f9fa; padding: 12px 15px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; font-size: 0.95rem; font-weight: 600; color: #333; }
+        .report-item.completed { background: #e8f5e9; border-left: 5px solid #4caf50; }
+        .report-item.attempted { background: #fff3e0; border-left: 5px solid #ff9800; }
+        .report-item.unplayed { background: #f5f5f5; border-left: 5px solid #9e9e9e; color: #777; }
+        .status-tag { font-size: 0.8rem; font-weight: 800; padding: 4px 8px; border-radius: 20px; text-transform: uppercase; }
+        .status-tag.tag-completed { background: #4caf50; color: white; }
+        .status-tag.tag-attempted { background: #ff9800; color: white; }
+        .status-tag.tag-unplayed { background: #9e9e9e; color: white; }
 
-        #game-container { 
-            width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; 
-        }
-
-        /* --- SCROLLBAR STYLING (for map) --- */
-        .module-grid::-webkit-scrollbar { width: 8px; }
-        .module-grid::-webkit-scrollbar-track { background: transparent; }
-        .module-grid::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.15); border-radius: 10px; }
-
-        /* --- ANIMATIONS --- */
+        .module-grid::-webkit-scrollbar, .dashboard-body::-webkit-scrollbar { width: 8px; }
+        .module-grid::-webkit-scrollbar-track, .dashboard-body::-webkit-scrollbar-track { background: transparent; }
+        .module-grid::-webkit-scrollbar-thumb, .dashboard-body::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.15); border-radius: 10px; }
         @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-15px); } }
+        @keyframes popIn { 0% { transform: scale(0); } 80% { transform: scale(1.2); } 100% { transform: scale(1); } }
     </style>
 </head>
 <body>
 
-    <!-- TOP BAR -->
     <div class="top-bar">
-        <img src="panda.png" class="mascot-img" alt="Mascot">
-        <button class="lang-toggle" onclick="toggleLanguage()">中文 / EN</button>
+        <img src="panda.png" class="mascot-img" id="mascot-panda" alt="Mascot">
+        <div style="display:flex; align-items:center;">
+            <button class="top-bar-back-btn" id="global-back-btn" onclick="backToMap()">🏠</button>
+            <button class="lang-toggle" onclick="toggleLanguage()">中文 / EN</button>
+        </div>
     </div>
 
-    <!-- SCREEN 1: THE MAP -->
     <div id="map-screen" class="screen active">
         <div class="map-title" id="map-title">Choose a Game!</div>
         <div class="module-grid" id="module-grid"></div>
     </div>
 
-    <!-- SCREEN 2: THE GAME -->
     <div id="game-screen" class="screen">
-        <button class="back-btn" onclick="backToMap()">🏠</button>
-        <div id="game-container"></div>
+        <div class="game-template">
+            <div class="game-inst" id="game-inst">Instruction here</div>
+            <button class="voice-btn" onclick="repeatInstruction()">🔊</button>
+            <div id="game-content-area"></div>
+        </div>
+        <div class="game-overlay" id="game-overlay">
+            <div class="celebrate-text" id="celebrate-text">Great Job!</div>
+            <button class="next-btn" id="next-btn" onclick="executeNextAction()">Next</button>
+        </div>
+    </div>
+
+    <!-- Parent Gate Modal -->
+    <div id="parent-gate-modal" class="parent-modal">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeParentGate()">✕</button>
+            <div class="modal-title">Parents Only</div>
+            <div class="pin-input-area">
+                <p style="margin:0; text-align:center; color:#555;">Enter parent PIN to unlock progress dashboards:</p>
+                <input type="password" id="parent-pin-box" class="pin-box" maxlength="4" placeholder="••••" pattern="\d*">
+                <button class="parent-btn" onclick="verifyParentGate()">Verify</button>
+                <p style="margin: 0; font-size: 0.8rem; color: #aaa;">Default PIN is 1234</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Parent Monitor Dashboard Modal -->
+    <div id="parent-dashboard-modal" class="parent-modal">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeParentDashboard()">✕</button>
+            <div class="modal-title">📊 Parent Monitor Dashboard</div>
+            
+            <div class="dashboard-body">
+                <div class="stats-summary">
+                    <div class="stat-box">
+                        <h4>Total Completions</h4>
+                        <p id="stat-total-plays">0</p>
+                    </div>
+                    <div class="stat-box">
+                        <h4>Games Mastered</h4>
+                        <p id="stat-unique-games">0 / 38</p>
+                    </div>
+                </div>
+
+                <!-- Structured breakdown lists -->
+                <div class="dashboard-section-title">✅ Mastered Games (Completed Successfully)</div>
+                <div class="report-list" id="list-mastered"></div>
+
+                <div class="dashboard-section-title">⏳ Attempted Games (Opened but Not Finished)</div>
+                <div class="report-list" id="list-attempted"></div>
+
+                <div class="dashboard-section-title">⚪ Not Played Yet</div>
+                <div class="report-list" id="list-unplayed"></div>
+
+                <div style="margin-top: 30px; text-align: center;">
+                    <button class="parent-btn" style="background:#aaa; font-size:0.9rem;" onclick="clearProgressData()">Clear All Records</button>
+                </div>
+            </div>
+        </div>
     </div>
 
     <script>
-        // ==========================================
-        // 🧠 THE GLOBAL BRAIN & MASTER REGISTRY
-        // ==========================================
-        window.appState = { currentLang: 'en' };
+        window.appState = { currentLang: 'en', currentLoadedModuleId: null };
+        let currentRepeatFunc = null, currentNextFunc = null, currentInstEn = "", currentInstZh = "";
 
-        // 🎮 ALL MODULES LIVE HERE — ADD UNLIMITED MODULES!
+        // ==========================================
+        // 🎵 GLOBAL SFX ENGINE
+        // ==========================================
+        const sfxEngine = {
+            pop: new Audio('pop.wav'),
+            chime: new Audio('chime.wav'),
+            boop: new Audio('boop.wav'),
+            play: function(soundName) {
+                if (this[soundName]) {
+                    this[soundName].currentTime = 0; 
+                    this[soundName].play().catch(e => console.log("Audio play blocked until user interaction."));
+                }
+            }
+        };
+
+        window.playErrorSound = function() { sfxEngine.play('boop'); };
+
+        document.getElementById('game-content-area').addEventListener('click', function(event) {
+            const target = event.target;
+            const isClickable = target.closest('button') || 
+                               target.closest('.card') || 
+                               target.closest('.item') || 
+                               target.closest('.choice') || 
+                               target.closest('[onclick]') ||
+                               window.getComputedStyle(target).cursor === 'pointer';
+            
+            if (isClickable) {
+                sfxEngine.play('pop');
+            }
+        });
+
+        // ==========================================
+        // 📊 PROGRESS TRACKER CORE ENGINE
+        // ==========================================
+        const trackerEngine = {
+            getData: function() {
+                const raw = localStorage.getItem('baos_math_progress');
+                return raw ? JSON.parse(raw) : { completionCounts: {}, statusMap: {} }; // counts = success loops, statusMap = tracking interaction state
+            },
+            saveData: function(data) {
+                localStorage.setItem('baos_math_progress', JSON.stringify(data));
+            },
+            recordIntent: function(moduleId) {
+                if (!moduleId) return;
+                let data = this.getData();
+                // Set to 'attempted' only if it hasn't already been explicitly marked 'completed'
+                if (data.statusMap[moduleId] !== 'completed') {
+                    data.statusMap[moduleId] = 'attempted';
+                }
+                this.saveData(data);
+            },
+            recordCompletion: function(moduleId) {
+                if (!moduleId) return;
+                let data = this.getData();
+                
+                // Pure victory increments
+                data.completionCounts[moduleId] = (data.completionCounts[moduleId] || 0) + 1;
+                data.statusMap[moduleId] = 'completed'; // Upgraded from attempted state
+                
+                this.saveData(data);
+            }
+        };
+
+        //  COMPLETE IXL FOUNDATION SYLLABUS REGISTRY
         const MODULE_REGISTRY = [
             // --- COUNTING & NUMBERS ---
-            { id: 'module-a',  file: 'module-a.html',  icon: '🍎', titleEn: 'Apple Orchard',     titleZh: '苹果园',       unlocked: true },
-            { id: 'module-bb', file: 'module-bb.html', icon: '🔢', titleEn: 'Teen Numbers',       titleZh: '十几的数字',    unlocked: true },
-            { id: 'module-cc', file: 'module-cc.html', icon: '🐸', titleEn: 'Frog Skip-Count',    titleZh: '青蛙跳数',     unlocked: true }, // UNLOCKED!
+            { id: 'module-a', file: 'module-a.html', icon: '🤟', titleEn: 'Count to 3', titleZh: '数到3', unlocked: true },
+            { id: 'module-b', file: 'module-b.html', icon: '🖐️', titleEn: 'Count to 5', titleZh: '数到5', unlocked: true },
+            { id: 'module-c', file: 'module-c.html', icon: '🪶', titleEn: 'One More/Less to 5', titleZh: '5以内多1少1', unlocked: true },
+            { id: 'module-d', file: 'module-d.html', icon: '👐', titleEn: 'Count to 10', titleZh: '数到10', unlocked: true },
+            { id: 'module-e', file: 'module-e.html', icon: '🎈', titleEn: 'One More/Less to 10', titleZh: '10以内多1少1', unlocked: true },
+            { id: 'module-f', file: 'module-f.html', icon: '⏳', titleEn: 'Count Forward/Back', titleZh: '前后数数', unlocked: true },
+            { id: 'module-g', file: 'module-g.html', icon: '⚖️', titleEn: 'Compare up to 10', titleZh: '比较10以内', unlocked: true },
             
-            // --- ADDITION & SUBTRACTION ---
-            { id: 'module-h',  file: 'module-h.html',  icon: '⭐', titleEn: 'Picnic River',       titleZh: '野餐河',       unlocked: true },
-            { id: 'module-p',  file: 'module-p.html',  icon: '🍽️', titleEn: 'Eat the Apples!',    titleZh: '吃苹果！',     unlocked: true },
-            
-            // --- COMPARING & LOGIC ---
-            { id: 'module-g',  file: 'module-g.html',  icon: '⚖️', titleEn: 'Which Has More?',    titleZh: '哪边更多？',    unlocked: true },
-            { id: 'module-ee', file: 'module-ee.html', icon: '🐛', titleEn: 'Pattern Forest',     titleZh: '图案森林',     unlocked: true },
-            { id: 'module-gg', file: 'module-gg.html', icon: '🔍', titleEn: 'Odd One Out',        titleZh: '找不同',       unlocked: true },
-            { id: 'module-mm', file: 'module-mm.html', icon: '🧺', titleEn: 'Sort the Fruits',    titleZh: '分水果',       unlocked: true }, // UNLOCKED!
-            
-            // --- SHAPES & SPACE ---
-            { id: 'module-hh', file: 'module-hh.html', icon: '🏰', titleEn: 'Shape Castle',       titleZh: '形状城堡',     unlocked: true },
-            { id: 'module-jj', file: 'module-jj.html', icon: '🎲', titleEn: '3D Shape Lab',       titleZh: '立体形状',     unlocked: true }, // UNLOCKED!
-            { id: 'module-ff', file: 'module-ff.html', icon: '🐰', titleEn: 'Bunny Positions',    titleZh: '兔子位置',     unlocked: true },
+            // --- ADDITION ---
+            { id: 'module-h', file: 'module-h.html', icon: '🧱', titleEn: 'Understand Add to 5', titleZh: '理解5以内加法', unlocked: true },
+            { id: 'module-i', file: 'module-i.html', icon: '➕', titleEn: 'Addition to 5', titleZh: '5以内加法', unlocked: true },
+            { id: 'module-j', file: 'module-j.html', icon: '🍕', titleEn: 'Partition to 5', titleZh: '分解5以内', unlocked: true },
+            { id: 'module-k', file: 'module-k.html', icon: '💬', titleEn: 'Add Word Prob to 5', titleZh: '5以内加法应用题', unlocked: true },
+            { id: 'module-m', file: 'module-m.html', icon: '🧮', titleEn: 'Addition to 10', titleZh: '10以内加法', unlocked: true },
+            { id: 'module-n', file: 'module-n.html', icon: '🧩', titleEn: 'Partition to 10', titleZh: '分解10以内', unlocked: true },
+            { id: 'module-o', file: 'module-o.html', icon: '📝', titleEn: 'Add Word Prob to 10', titleZh: '10以内加法应用题', unlocked: true },
 
-            // --- COMING SOON (Locked) ---
-            { id: 'module-kk', file: 'module-kk.html', icon: '🏠', titleEn: 'Shapes in the Wild', titleZh: '生活中的形状', unlocked: false },
-            { id: 'module-nn', file: 'module-nn.html', icon: '📊', titleEn: 'Picture Graphs',     titleZh: '图片图表',     unlocked: false }
+            // --- SUBTRACTION ---
+            { id: 'module-p', file: 'module-p.html', icon: '✂️', titleEn: 'Understand Sub to 5', titleZh: '理解5以内减法', unlocked: true },
+            { id: 'module-q', file: 'module-q.html', icon: '➖', titleEn: 'Subtraction to 5', titleZh: '5以内减法', unlocked: true },
+            { id: 'module-r', file: 'module-r.html', icon: '📖', titleEn: 'Sub Word Prob to 5', titleZh: '5以内减法应用题', unlocked: true },
+            { id: 'module-s', file: 'module-s.html', icon: '🍂', titleEn: 'Understand Sub to 10', titleZh: '理解10以内减法', unlocked: true },
+            { id: 'module-t', file: 'module-t.html', icon: '📉', titleEn: 'Subtraction to 10', titleZh: '10以内减法', unlocked: true },
+            { id: 'module-u', file: 'module-u.html', icon: '💡', titleEn: 'Sub Word Prob to 10', titleZh: '10以内减法应用题', unlocked: true },
+
+            // --- MIXED & HIGHER NUMBERS ---
+            { id: 'module-v', file: 'module-v.html', icon: '🔄', titleEn: 'Mixed Operations', titleZh: '混合运算', unlocked: true },
+            { id: 'module-w', file: 'module-w.html', icon: '🧠', titleEn: 'Mixed Word Problems', titleZh: '混合应用题', unlocked: true },
+            { id: 'module-x', file: 'module-x.html', icon: '🎒', titleEn: 'Count to 20', titleZh: '数到20', unlocked: true },
+            { id: 'module-y', file: 'module-y.html', icon: '🚀', titleEn: 'One More/Less to 20', titleZh: '20以内多1少1', unlocked: true },
+            { id: 'module-z', file: 'module-z.html', icon: '🏎️', titleEn: 'Count Forward/Back 20', titleZh: '前后数到20', unlocked: true },
+            { id: 'module-aa', file: 'module-aa.html', icon: '🤼', titleEn: 'Compare up to 20', titleZh: '比较20以内', unlocked: true },
+            { id: 'module-bb', file: 'module-bb.html', icon: '🔟', titleEn: 'Teen Numbers', titleZh: '十几的数字', unlocked: true },
+            { id: 'module-cc', file: 'module-cc.html', icon: '🦘', titleEn: 'Skip-counting', titleZh: '跳数', unlocked: true },
+            { id: 'module-dd', file: 'module-dd.html', icon: '💯', titleEn: 'Count to 100', titleZh: '数到100', unlocked: true },
+
+            // --- LOGIC, PATTERNS & DATA ---
+            { id: 'module-ee', file: 'module-ee.html', icon: '🐛', titleEn: 'Patterns', titleZh: '找规律', unlocked: true },
+            { id: 'module-ff', file: 'module-ff.html', icon: '🐰', titleEn: 'Positions', titleZh: '位置', unlocked: true },
+            { id: 'module-gg', file: 'module-gg.html', icon: '🔍', titleEn: 'Same and Different', titleZh: '相同与不同', unlocked: true },
+            { id: 'module-mm', file: 'module-mm.html', icon: '🧺', titleEn: 'Sort & Classify', titleZh: '分类整理', unlocked: true },
+            { id: 'module-nn', file: 'module-nn.html', icon: '📊', titleEn: 'Data & Graphs', titleZh: '数据图表', unlocked: true },
+
+            // --- SHAPES & GEOMETRY ---
+            { id: 'module-hh', file: 'module-hh.html', icon: '🔷', titleEn: '2D Shapes', titleZh: '平面图形', unlocked: true },
+            { id: 'module-ii', file: 'module-ii.html', icon: '📏', titleEn: '2D Shape Attributes', titleZh: '图形特征', unlocked: true },
+            { id: 'module-jj', file: 'module-jj.html', icon: '🧊', titleEn: '3D Shapes', titleZh: '立体图形', unlocked: true },
+            { id: 'module-kk', file: 'module-kk.html', icon: '🏡', titleEn: 'Real World Shapes', titleZh: '生活中的形状', unlocked: true },
+            { id: 'module-ll', file: 'module-ll.html', icon: '🍰', titleEn: 'Equal Parts', titleZh: '等分', unlocked: true }
         ];
 
         // ==========================================
-        // 🗣️ BILINGUAL ENGINE
+        // 🗣️ UNIVERSAL AUDIO & UI HELPERS
         // ==========================================
-        const uiText = {
-            en: { mapTitle: "Choose a Game!" },
-            zh: { mapTitle: "选择游戏！" }
-        };
-
-        function speak(text, langCode) {
+        window.speak = function(text, langCode) {
             if ('speechSynthesis' in window) {
                 window.speechSynthesis.cancel();
                 const u = new SpeechSynthesisUtterance(text);
-                u.lang = langCode; u.rate = 0.9; u.pitch = 1.2;
+                u.lang = langCode; u.rate = 0.8; u.pitch = 1.1;
                 window.speechSynthesis.speak(u);
             }
+        };
+
+        function getLangCode() { return window.appState.currentLang === 'en' ? 'en-US' : 'zh-CN'; }
+
+        window.setInstruction = function(enText, zhText) {
+            currentInstEn = enText; currentInstZh = zhText;
+            document.getElementById('game-inst').innerText = window.appState.currentLang === 'en' ? enText : zhText;
+            window.speak(window.appState.currentLang === 'en' ? enText : zhText, getLangCode());
+        };
+
+        window.setRepeatFunction = function(func) { currentRepeatFunc = func; };
+
+        function repeatInstruction() {
+            if (currentRepeatFunc) currentRepeatFunc();
+            else window.speak(window.appState.currentLang === 'en' ? currentInstEn : currentInstZh, getLangCode());
         }
+
+        window.showCelebration = function(enText, zhText, nextBtnEn, nextBtnZh, nextFunc) {
+            sfxEngine.play('chime'); 
+            
+            // Only write tracking values once a genuine win triggers[cite: 1]
+            if (window.appState.currentLoadedModuleId) {
+                trackerEngine.recordCompletion(window.appState.currentLoadedModuleId);
+            }
+
+            document.getElementById('celebrate-text').innerText = window.appState.currentLang === 'en' ? enText : zhText;
+            document.getElementById('next-btn').innerText = window.appState.currentLang === 'en' ? nextBtnEn : nextBtnZh;
+            currentNextFunc = nextFunc;
+            document.getElementById('game-overlay').classList.add('show');
+            window.speak(window.appState.currentLang === 'en' ? enText : zhText, getLangCode());
+        };
+
+        function executeNextAction() {
+            document.getElementById('game-overlay').classList.remove('show');
+            if (currentNextFunc) currentNextFunc();
+        }
+
+        // ==========================================
+        // 🗺️ MAP LOGIC
+        // ==========================================
+        const uiText = { en: { mapTitle: "Choose a Game!" }, zh: { mapTitle: "选择游戏！" } };
 
         function toggleLanguage() {
             window.appState.currentLang = window.appState.currentLang === 'en' ? 'zh' : 'en';
             updateMapUI();
-            const code = window.appState.currentLang === 'en' ? 'en-US' : 'zh-CN';
-            speak(uiText[window.appState.currentLang].mapTitle, code);
+            window.speak(uiText[window.appState.currentLang].mapTitle, getLangCode());
+            document.getElementById('game-overlay').classList.remove('show');
+            if (typeof window.onLanguageChange === 'function') window.onLanguageChange();
         }
 
         function updateMapUI() {
             const lang = window.appState.currentLang;
             document.getElementById('map-title').innerText = uiText[lang].mapTitle;
-            
             const grid = document.getElementById('module-grid');
             grid.innerHTML = '';
+            
+            const progressData = trackerEngine.getData();
 
             MODULE_REGISTRY.forEach(mod => {
                 const card = document.createElement('div');
                 card.className = `module-card ${mod.unlocked ? '' : 'locked'}`;
-                card.innerHTML = `
-                    <div class="module-icon">${mod.icon}</div>
-                    <div class="module-title">${lang === 'en' ? mod.titleEn : mod.titleZh}</div>
-                    ${mod.unlocked ? '' : '<div style="font-size:1.5rem;">🔒</div>'}
-                `;
-                if (mod.unlocked) {
-                    card.onclick = () => loadModule(mod.file);
+                
+                // Only render success badge overlays if the status says 'completed'
+                const status = progressData.statusMap[mod.id] || 'unplayed';
+                let badgeHtml = '';
+                if (status === 'completed') {
+                    const compCount = progressData.completionCounts[mod.id] || 1;
+                    badgeHtml = `<div class="badge-count" style="background:#4caf50;">✓</div>`;
+                } else if (status === 'attempted') {
+                    badgeHtml = `<div class="badge-count" style="background:#ff9800;">⚫</div>`;
                 }
+
+                card.innerHTML = `${badgeHtml}<div class="module-icon">${mod.icon}</div><div class="module-title">${lang === 'en' ? mod.titleEn : mod.titleZh}</div>${mod.unlocked ? '' : '<div style="font-size:1.5rem;">🔒</div>'}`;
+                if (mod.unlocked) card.onclick = () => { sfxEngine.play('pop'); loadModule(mod.id, mod.file); };
                 grid.appendChild(card);
             });
         }
 
         // ==========================================
-        // 🪡 THE DYNAMIC STITCHER
+        // 🪡 DYNAMIC STITCHER
         // ==========================================
-        async function loadModule(file) {
+        async function loadModule(id, file) {
             try {
+                // Clicking a module captures intent to play (marked 'attempted' if not already won)
+                trackerEngine.recordIntent(id);
+
                 const response = await fetch(file);
                 if (!response.ok) throw new Error('Module not found');
                 const htmlText = await response.text();
-
                 const tempDiv = document.createElement('div');
                 tempDiv.innerHTML = htmlText;
 
-                // Inject Styles
                 tempDiv.querySelectorAll('style').forEach(style => {
                     style.setAttribute('data-dynamic-module', 'true');
                     document.head.appendChild(style);
                 });
 
-                // Inject HTML
-                const gameContent = tempDiv.querySelector('.game-content');
-                const container = document.getElementById('game-container');
-                container.innerHTML = '';
-                if (gameContent) container.appendChild(gameContent);
+                const contentArea = document.getElementById('game-content-area');
+                contentArea.innerHTML = '';
+                const moduleHTML = tempDiv.querySelector('.module-content');
+                if (moduleHTML) { while (moduleHTML.firstChild) contentArea.appendChild(moduleHTML.firstChild); }
 
-                // Inject & Execute Scripts
                 tempDiv.querySelectorAll('script').forEach(oldScript => {
                     const newScript = document.createElement('script');
                     newScript.setAttribute('data-dynamic-module', 'true');
@@ -227,37 +396,146 @@
                     document.body.appendChild(newScript);
                 });
 
-                // Init game
-                if (typeof window.initCurrentModule === 'function') {
-                    window.initCurrentModule();
-                }
+                window.appState.currentLoadedModuleId = id; 
 
-                // Switch screen
+                if (typeof window.initModule === 'function') window.initModule();
+                document.getElementById('global-back-btn').style.display = 'flex';
                 document.getElementById('map-screen').classList.remove('active');
                 document.getElementById('game-screen').classList.add('active');
-
-            } catch (error) {
-                console.error("Failed to load module:", error);
-                alert("Oops! Game file missing.");
-            }
+            } catch (error) { console.error("Failed to load module:", error); }
         }
 
         function backToMap() {
-            if (typeof window.destroyCurrentModule === 'function') {
-                window.destroyCurrentModule();
-            }
-            document.getElementById('game-container').innerHTML = '';
+            if (typeof window.destroyModule === 'function') window.destroyModule();
+            document.getElementById('game-content-area').innerHTML = '';
+            document.getElementById('game-overlay').classList.remove('show');
             document.querySelectorAll('[data-dynamic-module]').forEach(el => el.remove());
+            document.getElementById('global-back-btn').style.display = 'none';
             document.getElementById('game-screen').classList.remove('active');
             document.getElementById('map-screen').classList.add('active');
-            updateMapUI(); // Refresh map in case language changed during game
+            window.appState.currentLoadedModuleId = null;
+            updateMapUI();
         }
 
-        // --- INIT ---
+        // ==========================================
+        // 🔐 SECRET PARENT HANDSHAKE LOGIC
+        // ==========================================
+        let pandaClickCount = 0;
+        let pandaClickTimer = null;
+
+        document.getElementById('mascot-panda').addEventListener('click', function() {
+            pandaClickCount++;
+            clearTimeout(pandaClickTimer);
+            
+            pandaClickTimer = setTimeout(() => { pandaClickCount = 0; }, 3000);
+
+            if (pandaClickCount >= 5) {
+                pandaClickCount = 0;
+                sfxEngine.play('pop');
+                openParentGate();
+            }
+        });
+
+        function openParentGate() {
+            document.getElementById('parent-pin-box').value = '';
+            document.getElementById('parent-gate-modal').classList.add('show');
+        }
+
+        function closeParentGate() {
+            document.getElementById('parent-gate-modal').classList.remove('show');
+        }
+
+        function verifyParentGate() {
+            const inputPin = document.getElementById('parent-pin-box').value;
+            if (inputPin === '1234') {
+                closeParentGate();
+                openParentDashboard();
+            } else {
+                sfxEngine.play('boop');
+                alert(window.appState.currentLang === 'zh' ? '密码错误，请重试！' : 'Incorrect PIN. Try again!');
+                document.getElementById('parent-pin-box').value = '';
+            }
+        }
+
+        function openParentDashboard() {
+            const data = trackerEngine.getData();
+            const lang = window.appState.currentLang;
+            
+            let totalPlays = 0;
+            let uniqueMastered = 0;
+
+            // Clear list boxes inside dashboard
+            const containerMastered = document.getElementById('list-mastered');
+            const containerAttempted = document.getElementById('list-attempted');
+            const containerUnplayed = document.getElementById('list-unplayed');
+            
+            containerMastered.innerHTML = '';
+            containerAttempted.innerHTML = '';
+            containerUnplayed.innerHTML = '';
+
+            MODULE_REGISTRY.forEach(mod => {
+                const status = data.statusMap[mod.id] || 'unplayed';
+                const titleText = lang === 'en' ? mod.titleEn : mod.titleZh;
+                
+                const itemDiv = document.createElement('div');
+                itemDiv.className = `report-item ${status}`;
+                
+                if (status === 'completed') {
+                    uniqueMastered++;
+                    const count = data.completionCounts[mod.id] || 1;
+                    totalPlays += count;
+                    itemDiv.innerHTML = `<div>${mod.icon} ${titleText}</div><span class="status-tag tag-completed">Mastered (${count}x)</span>`;
+                    containerMastered.appendChild(itemDiv);
+                } else if (status === 'attempted') {
+                    itemDiv.innerHTML = `<div>${mod.icon} ${titleText}</div><span class="status-tag tag-attempted">Attempted</span>`;
+                    containerAttempted.appendChild(itemDiv);
+                } else {
+                    itemDiv.innerHTML = `<div>${mod.icon} ${titleText}</div><span class="status-tag tag-unplayed">Not Played</span>`;
+                    containerUnplayed.appendChild(itemDiv);
+                }
+            });
+
+            // Handlers for empty lists inside the subcontainers
+            if (containerMastered.innerHTML === '') containerMastered.innerHTML = '<div class="report-item" style="color:#888; justify-content:center;">No games mastered yet.</div>';
+            if (containerAttempted.innerHTML === '') containerAttempted.innerHTML = '<div class="report-item" style="color:#888; justify-content:center;">No incomplete games.</div>';
+            if (containerUnplayed.innerHTML === '') containerUnplayed.innerHTML = '<div class="report-item" style="color:#888; justify-content:center;">All games played!</div>';
+
+            document.getElementById('stat-total-plays').innerText = totalPlays;
+            document.getElementById('stat-unique-games').innerText = `${uniqueMastered} / ${MODULE_REGISTRY.length}`;
+
+            document.getElementById('parent-dashboard-modal').classList.add('show');
+        }
+
+        function closeParentDashboard() {
+            document.getElementById('parent-dashboard-modal').classList.remove('show');
+            updateMapUI(); 
+        }
+
+        function clearProgressData() {
+            const confirmation = confirm(window.appState.currentLang === 'zh' ? '确定要清空所有的学习记录吗？' : 'Are you sure you want to completely erase all tracking history?');
+            if (confirmation) {
+                localStorage.removeItem('baos_math_progress');
+                openParentDashboard(); 
+            }
+        }
+
         window.onload = () => {
             updateMapUI();
-            setTimeout(() => speak(uiText[window.appState.currentLang].mapTitle, 'en-US'), 500);
+            setTimeout(() => window.speak(uiText[window.appState.currentLang].mapTitle, 'en-US'), 500);
         };
+
+        // ==========================================
+        // 📴 OFFLINE SERVICE WORKER REGISTRATION
+        // ==========================================
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function() {
+                navigator.serviceWorker.register('/mathgame/service-worker.js', { scope: '/mathgame/' }).then(function(registration) {
+                    console.log('ServiceWorker registration successful with scope: ', registration.scope);
+                }, function(err) {
+                    console.log('ServiceWorker registration failed: ', err);
+                });
+            });
+        }
     </script>
 </body>
 </html>
