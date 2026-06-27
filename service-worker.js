@@ -1,63 +1,63 @@
-const CACHE_NAME = 'baos-math-v1';
+const CACHE_NAME = 'baos-math-v2';
+const REPO = '/mathgame';
 
-// Every single file in your repository mapped explicitly for offline usage
 const ASSETS_TO_CACHE = [
-    './',
-    './index.html',
-    './manifest.json',
-    './icon.png',
-    './panda.png',
-    
+    `${REPO}/`,
+    `${REPO}/index.html`,
+    `${REPO}/manifest.json`,
+    `${REPO}/icon.png`,
+    `${REPO}/panda.png`,
+
     // Audio FX
-    './pop.wav',
-    './chime.wav',
-    './boop.wav',
+    `${REPO}/pop.wav`,
+    `${REPO}/chime.wav`,
+    `${REPO}/boop.wav`,
 
     // Core Game Illustrations / Objects
-    './apple.png',
-    './balloon.png',
-    './banana.png',
-    './bunny.png',
-    './butterfly.png',
-    './car.png',
-    './cookie.png',
-    './fish.png',
-    './frog.png',
-    './grape.png',
-    './heart.png',
-    './lilypad.png',
-    './orange.png',
-    './star.png',
-    './watermelon.png',
+    `${REPO}/apple.png`,
+    `${REPO}/balloon.png`,
+    `${REPO}/banana.png`,
+    `${REPO}/bunny.png`,
+    `${REPO}/butterfly.png`,
+    `${REPO}/car.png`,
+    `${REPO}/cookie.png`,
+    `${REPO}/fish.png`,
+    `${REPO}/frog.png`,
+    `${REPO}/grape.png`,
+    `${REPO}/heart.png`,
+    `${REPO}/lilypad.png`,
+    `${REPO}/orange.png`,
+    `${REPO}/star.png`,
+    `${REPO}/watermelon.png`,
 
     // Real World Shapes Texture Elements
-    './real-book.png',
-    './real-clock.png',
-    './real-door.png',
-    './real-sandwich.png',
+    `${REPO}/real-book.png`,
+    `${REPO}/real-clock.png`,
+    `${REPO}/real-door.png`,
+    `${REPO}/real-sandwich.png`,
 
     // Geometry Shapes
-    './shape-circle.png',
-    './shape-cube.png',
-    './shape-cylinder.png',
-    './shape-sphere.png',
-    './shape-square.png',
-    './shape-triangle.png',
+    `${REPO}/shape-circle.png`,
+    `${REPO}/shape-cube.png`,
+    `${REPO}/shape-cylinder.png`,
+    `${REPO}/shape-sphere.png`,
+    `${REPO}/shape-square.png`,
+    `${REPO}/shape-triangle.png`,
 
-    // All Active Gameplay HTML Modules (Excluding non-existent module-l)
-    './module-a.html', './module-b.html', './module-c.html', './module-d.html',
-    './module-e.html', './module-f.html', './module-g.html', './module-h.html',
-    './module-i.html', './module-j.html', './module-k.html', './module-m.html',
-    './module-n.html', './module-o.html', './module-p.html', './module-q.html',
-    './module-r.html', './module-s.html', './module-t.html', './module-u.html',
-    './module-v.html', './module-w.html', './module-x.html', './module-y.html',
-    './module-z.html', './module-aa.html', './module-bb.html', './module-cc.html',
-    './module-dd.html', './module-ee.html', './module-ff.html', './module-gg.html',
-    './module-hh.html', './module-ii.html', './module-jj.html', './module-kk.html',
-    './module-ll.html', './module-mm.html', './module-nn.html'
+    // All Active Gameplay HTML Modules
+    `${REPO}/module-a.html`, `${REPO}/module-b.html`, `${REPO}/module-c.html`, `${REPO}/module-d.html`,
+    `${REPO}/module-e.html`, `${REPO}/module-f.html`, `${REPO}/module-g.html`, `${REPO}/module-h.html`,
+    `${REPO}/module-i.html`, `${REPO}/module-j.html`, `${REPO}/module-k.html`, `${REPO}/module-m.html`,
+    `${REPO}/module-n.html`, `${REPO}/module-o.html`, `${REPO}/module-p.html`, `${REPO}/module-q.html`,
+    `${REPO}/module-r.html`, `${REPO}/module-s.html`, `${REPO}/module-t.html`, `${REPO}/module-u.html`,
+    `${REPO}/module-v.html`, `${REPO}/module-w.html`, `${REPO}/module-x.html`, `${REPO}/module-y.html`,
+    `${REPO}/module-z.html`, `${REPO}/module-aa.html`, `${REPO}/module-bb.html`, `${REPO}/module-cc.html`,
+    `${REPO}/module-dd.html`, `${REPO}/module-ee.html`, `${REPO}/module-ff.html`, `${REPO}/module-gg.html`,
+    `${REPO}/module-hh.html`, `${REPO}/module-ii.html`, `${REPO}/module-jj.html`, `${REPO}/module-kk.html`,
+    `${REPO}/module-ll.html`, `${REPO}/module-mm.html`, `${REPO}/module-nn.html`
 ];
 
-// Install Event: Saves everything into the iPad storage cache upfront
+// Install Event: Cache everything upfront for offline use
 self.addEventListener('install', event => {
     event.waitUntil(
         caches.open(CACHE_NAME).then(cache => {
@@ -67,7 +67,7 @@ self.addEventListener('install', event => {
     );
 });
 
-// Activate Event: Clears out old cache versions when you release updates
+// Activate Event: Clear old cache versions on update
 self.addEventListener('activate', event => {
     event.waitUntil(
         caches.keys().then(cacheNames => {
@@ -83,14 +83,14 @@ self.addEventListener('activate', event => {
     );
 });
 
-// Fetch Interceptor: Serves cached files instantly without needing cellular/Wi-Fi
+// Fetch Interceptor: Serve cached files instantly offline
 self.addEventListener('fetch', event => {
     event.respondWith(
         caches.match(event.request).then(cachedResponse => {
             if (cachedResponse) {
-                return cachedResponse; // Return the fast, offline file
+                return cachedResponse;
             }
-            return fetch(event.request); // Fallback to network if something extra is pulled
+            return fetch(event.request);
         })
     );
 });
