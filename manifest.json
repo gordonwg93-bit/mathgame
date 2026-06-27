@@ -1,8 +1,9 @@
 {
   "name": "Bao's Bilingual Math",
   "short_name": "Bao Math",
-  "start_url": "/index.html",
-  "display": "standalone", 
+  "start_url": "/mathgame/",
+  "scope": "/mathgame/",
+  "display": "standalone",
   "background_color": "#e0f7fa",
   "theme_color": "#ff6b6b",
   "orientation": "portrait",
